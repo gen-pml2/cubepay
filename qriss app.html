@@ -1,0 +1,3135 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QRIS ALL PAYMENT</title>
+    <style>
+        /* CSS Kamu Tetap Sama */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #f0f2f5; display: flex; justify-content: center; min-height: 100vh; }
+        .phone-container { width: 100%; max-width: 400px; background-color: #f8f9fa; height: 100vh; display: flex; flex-direction: column; position: relative; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        .blue-header { background-color: #0061ff; height: 140px; padding: 20px; color: white; position: relative; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; }
+        .user-info { display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 48px; height: 48px; border-radius: 50%; background: #eee; border: 2px solid white; }
+        .page { display: none; flex: 1; overflow-y: auto; padding-bottom: 80px; }
+        .page.active { display: block; }
+        .balance-card { background-color: #1a1e2b; margin: -60px 15px 0; border-radius: 16px; padding: 15px; color: white; z-index: 5; position: relative; }
+        .warning-box { background-color: #2d161a; border: 1px solid #ff4d4d; border-radius: 10px; padding: 8px; color: #ff4d4d; font-size: 11px; margin: 12px 0; text-align: center; }
+        .action-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center; margin-top: 15px; }
+        .icon-sq { width: 42px; height: 42px; background: #2d3243; border-radius: 12px; margin: 0 auto 5px; display: flex; justify-content: center; align-items: center; font-size: 20px; cursor: pointer; }
+        .qris-page { background-color: #0095ff; color: white; min-height: 100%; }
+        .qris-header { display: flex; align-items: center; padding: 20px; gap: 15px; }
+        .qris-card { background: white; margin: 20px; border-radius: 20px; padding: 25px; text-align: center; color: #333; }
+        .qr-box { width: 100%; aspect-ratio: 1/1; background: #f0f4f7; border-radius: 15px; margin: 15px 0; display: flex; justify-content: center; align-items: center; border: 1px solid #ddd; }
+        .qr-box img { width: 85%; }
+        .qris-balance { background: #f0f7ff; padding: 15px; border-radius: 15px; text-align: left; }
+        .qris-menu { background: rgba(255,255,255,0.2); margin: 10px 20px; padding: 15px; border-radius: 15px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+        .transfer-page { background-color: #0061ff; color: white; min-height: 100%; }
+        .wallet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; }
+        .wallet-card { background: white; color: #333; padding: 20px; border-radius: 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .stats-container { background: white; margin: -40px 15px 15px; border-radius: 15px; padding: 15px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); z-index: 5; position: relative; }
+        .stat-box { border: 1px solid #eee; border-radius: 10px; padding: 10px; text-align: center; font-size: 12px; font-weight: bold; color: #333; }
+        .filter-row { display: flex; justify-content: space-between; padding: 0 15px; margin-bottom: 15px; }
+        .tab-btn { flex: 1; text-align: center; padding: 8px 0; font-size: 12px; font-weight: bold; color: #555; cursor: pointer; border-radius: 20px; }
+        .tab-btn.active { background: #0061ff; color: white; }
+        .search-box { margin: 0 15px; padding: 12px; background: white; border: 1px solid #ddd; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; cursor: pointer; }
+        .rekap-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 15px; margin-top: -50px; position: relative; z-index: 10; }
+        .rekap-card { padding: 15px; border-radius: 18px; min-height: 95px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .rekap-card h5 { font-size: 11px; color: #666; margin-bottom: 5px; }
+        .rekap-card p { font-size: 16px; font-weight: bold; color: #333; }
+        .mutasi-card { background: white; margin: 15px; border-radius: 15px; padding: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .date-label { padding: 10px 15px; font-size: 12px; color: #888; font-weight: bold; }
+        .list-container { background: white; margin: 15px; border-radius: 15px; padding: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #f5f5f5; cursor: pointer; }
+        .list-item:last-child { border-bottom: none; }
+        .icon-circle { width: 38px; height: 38px; border-radius: 12px; display: flex; justify-content: center; align-items: center; margin-right: 12px; font-size: 18px; }
+        .item-text h4 { font-size: 14px; font-weight: 600; color: #333; }
+        .item-text p { font-size: 11px; color: #888; }
+        .nav-item { text-align: center; color: #999; font-size: 10px; cursor: pointer; flex: 1; transition: 0.2s; }
+        .nav-item.active { color: #0061ff; }
+        .nav-icon { font-size: 24px; margin-bottom: 2px; }
+        .modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 300; display: none; justify-content: center; align-items: center; }
+        .modal-content { width: 85%; background: white; border-radius: 12px; overflow: hidden; pointer-events: auto; }
+        .modal-item { padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; cursor: pointer; color: #333; }
+        .promo-container { padding: 0 15px; margin-top: 10px; }
+        .promo-banner { width: 100%; height: 100px; border-radius: 12px; overflow: hidden; }
+        .promo-banner img { width: 100%; height: 100%; object-fit: cover; }
+        .category-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 15px; }
+        .category-item { background: white; padding: 10px; border-radius: 12px; text-align: center; font-size: 12px; font-weight: bold; color: #333; border: 1px solid #eee; cursor: pointer; }
+        .category-item.active { background: #0061ff !important; color: white !important; }
+        .content-section { background: white; margin: 15px; border-radius: 20px; padding: 15px; display: none; }
+        .content-section.active { display: block; }
+        .product-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; text-align: center; }
+        .product-item img { width: 40px; height: 40px; margin-bottom: 5px; }
+        .product-item p { font-size: 11px; font-weight: bold; }
+        /* Style Tambahan untuk Menu & Profile */
+        /* --- PERBAIKAN STRUKTUR UTAMA --- */
+.phone-container { 
+    width: 100%; 
+    max-width: 400px; 
+    background-color: #f8f9fa; 
+    height: 100vh; 
+    display: flex; 
+    flex-direction: column; 
+    position: relative; 
+    overflow: hidden; /* Mengunci layar utama */
+    box-shadow: 0 0 20px rgba(0,0,0,0.1); 
+}
+.rekap-grid { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 12px; 
+    padding: 0 15px; 
+    margin-top: -50px; 
+    position: relative; 
+    z-index: 10; 
+}
+.rekap-card { 
+    padding: 15px; 
+    border-radius: 18px; 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+    background: white; 
+}
+.rekap-card h5 { font-size: 11px; color: #666; margin-bottom: 5px; }
+.rekap-card p { font-size: 15px; font-weight: bold; color: #333; }
+
+.avatar-large { 
+    width: 70px; 
+    height: 70px; 
+    border-radius: 50%; 
+    background: #ddd; 
+    border: 3px solid rgba(255,255,255,0.3); 
+    margin-bottom: 10px;
+}
+/* --- PERBAIKAN NAVIGASI (FIXED) --- */
+.bottom-nav {
+    height: 70px;
+    background: white;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    position: fixed; /* Berubah dari absolute ke fixed */
+    bottom: 0;
+    width: 100%;
+    max-width: 400px; /* Harus sama dengan phone-container */
+    z-index: 9999; /* Pastikan selalu di depan */
+    padding-bottom: env(safe-area-inset-bottom); /* Support HP layar poni/bezel tipis */
+}
+
+/* Memastikan halaman aktif muncul dengan benar */
+.page.active { 
+    display: block !important; 
+}
+.status-badge {
+    font-size: 10px; 
+    background: rgba(255,255,255,0.2); 
+    padding: 2px 12px; 
+    border-radius: 20px; 
+    color: white;
+}
+
+.nav-item {
+    color: #999; /* Warna saat tidak aktif */
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.nav-item.active {
+    color: #0061ff; /* Warna biru saat aktif */
+    transform: translateY(-2px); /* Efek sedikit naik */
+}
+
+.nav-icon svg {
+    margin-bottom: 4px;
+    transition: all 0.3s ease;
+}
+
+.nav-item.active svg {
+    stroke: #0061ff; /* Warna icon berubah jadi biru */
+}
+
+.price-card:active {
+    background: #eef2ff !important;
+    border-color: #0061ff !important;
+    transform: scale(0.95);
+}
+
+/* Style Modal Alert Keren */
+.custom-alert-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    display: none; /* Sembunyi awal */
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.custom-alert-box {
+    background: white;
+    width: 80%;
+    max-width: 300px;
+    border-radius: 20px;
+    padding: 25px;
+    text-align: center;
+    animation: popIn 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+@keyframes popIn {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.alert-icon {
+    font-size: 50px;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.alert-title {
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.alert-msg {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.btn-alert-ok {
+    background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+    color: white;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 25px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(58, 123, 213, 0.4);
+}
+
+.btn-alert-cancel {
+    background: #f1f1f1;
+    color: #888;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+/* --- UPGRADE UI AUTH MODERN --- */
+.auth-screen {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(135deg, #0061ff 0%, #60efff 100%);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 30px;
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+.auth-screen.active { display: flex; animation: fadeIn 0.5s ease; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.auth-card {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    width: 100%;
+    padding: 30px 20px;
+    border-radius: 30px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    text-align: center;
+}
+
+.auth-logo {
+    width: 80px;
+    height: 80px;
+    background: white;
+    border-radius: 22px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 40px;
+    margin: 0 auto 20px;
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    transform: rotate(-10deg);
+}
+
+.auth-card h2 {
+    color: white;
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 5px;
+    letter-spacing: 1px;
+}
+
+.auth-card p {
+    color: rgba(255,255,255,0.8);
+    font-size: 13px;
+    margin-bottom: 25px;
+}
+
+.auth-input-group {
+    width: 100%;
+    background: white;
+    border-radius: 15px;
+    padding: 5px 15px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    transition: 0.3s;
+    border: 2px solid transparent;
+}
+
+.auth-input-group:focus-within {
+    border-color: #1a1e2b;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.auth-input-group span { font-size: 18px; }
+
+.auth-input-group input {
+    border: none;
+    background: none;
+    outline: none;
+    width: 100%;
+    padding: 12px 10px;
+    font-size: 14px;
+    color: #333;
+    font-weight: 600;
+}
+
+.btn-auth-premium {
+    width: 100%;
+    background: #1a1e2b;
+    color: white;
+    border: none;
+    padding: 16px;
+    border-radius: 15px;
+    font-weight: bold;
+    font-size: 15px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: 0.3s;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+.btn-auth-premium:active { transform: scale(0.97); }
+
+.auth-footer {
+    margin-top: 25px;
+    color: white;
+    font-size: 13px;
+}
+
+.auth-footer b {
+    color: #1a1e2b;
+    text-decoration: underline;
+    cursor: pointer;
+}
+.auth-link {
+    margin-top: 20px;
+    color: white;
+    font-size: 13px;
+    cursor: pointer;
+}
+/* Style Form Transfer */
+.transfer-form {
+    padding: 20px;
+    background: white;
+    margin: 15px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+.input-group {
+    margin-bottom: 20px;
+}
+.input-group label {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+.input-group input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    outline: none;
+    font-size: 16px;
+    transition: 0.3s;
+}
+.input-group input:focus { border-color: #0061ff; }
+
+.amount-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+.amount-chip {
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+}
+.amount-chip:active { background: #eef2ff; border-color: #0061ff; }
+
+.btn-send {
+    width: 100%;
+    background: #0061ff;
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 15px;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+.icon-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 15px;
+    font-size: 20px;
+    flex-shrink: 0; /* Biar ikon nggak gepeng kalau teks kepanjangan */
+}
+
+.list-item {
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    background: white;
+    transition: background 0.2s;
+}
+
+.list-item:active {
+    background: #f9f9f9;
+}
+.reward-access-card {
+    background: white;
+    margin: 15px;
+    padding: 15px;
+    border-radius: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #ffeeba;
+    cursor: pointer;
+}
+
+.btn-claim-large {
+    width: 100%;
+    background: linear-gradient(135deg, #ffcc00, #ff8800);
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 15px;
+    font-weight: bold;
+    font-size: 16px;
+    box-shadow: 0 5px 15px rgba(255, 136, 0, 0.4);
+    cursor: pointer;
+}
+
+.btn-claim-large:disabled {
+    background: #ccc;
+    box-shadow: none;
+}
+#mainNav {
+    display: none; /* Sembunyikan navigasi di awal */
+}
+.promo-container {
+    width: 100%;
+    overflow: hidden; /* Sembunyikan gambar yang di luar layar */
+    position: relative;
+    border-radius: 15px;
+    margin: 15px 0;
+}
+
+.promo-wrapper {
+    display: flex;
+    transition: transform 0.5s ease-in-out; /* Animasi geser halus */
+    cursor: grab;
+}
+
+.promo-slide {
+    min-width: 100%; /* Satu slide memenuhi lebar container */
+    box-sizing: border-box;
+}
+
+.promo-slide img {
+    width: 100%;
+    display: block;
+    border-radius: 15px;
+}
+
+/* Indikator Titik */
+.promo-dots {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    background: #ddd;
+    border-radius: 50%;
+    transition: 0.3s;
+}
+
+.dot.active {
+    background: #0061ff;
+    width: 20px; /* Titik aktif jadi lebih panjang */
+    border-radius: 10px;
+}
+/* Styling Logo di Atas */
+.auth-logo-container {
+    width: 90px;
+    height: 90px;
+    margin: 0 auto 20px;
+    background: white;
+    padding: 10px;
+    border-radius: 25px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.auth-custom-logo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 15px;
+}
+
+/* Styling Ikon Input */
+.auth-input-group i {
+    color: #0061ff; /* Warna ikon biru premium */
+    font-size: 18px;
+    width: 30px;
+    text-align: center;
+}
+
+.auth-input-group input {
+    margin-left: 10px;
+    flex: 1;
+}
+/* Layer Putih untuk Transisi */
+#transition-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease-in-out;
+}
+
+/* Animasi Fade In untuk Halaman Baru */
+.page-fade {
+    animation: fadeToWhite 0.5s forwards;
+}
+
+@keyframes fadeToWhite {
+    from { opacity: 0; background-color: white; }
+    to { opacity: 1; }
+}
+.notif-item {
+    transition: background 0.3s;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    padding: 10px;
+    position: relative;
+    user-select: none; /* Mencegah seleksi teks saat ditekan lama */
+}
+
+.notif-item.selected {
+    background-color: #e6f0ff !important;
+    border-left: 4px solid #0061ff;
+}
+.page {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: #f8f9fa;
+    overflow-y: auto;
+    display: none; /* Default sembunyi */
+}
+    </style>
+</head>
+<body>
+    <link rel="stylesheet" href="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id=11Cdg11bCKZyCn4ehMtrWcklSR68kS9DM">
+
+<div id="login_page" class="auth-screen active">
+    <div class="auth-card">
+        <div class="auth-logo-container">
+            <img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id=11Cdg11bCKZyCn4ehMtrWcklSR68kS9DM" alt="App Logo" class="auth-custom-logo">
+        </div>
+        
+        <h2>CubePay</h2>
+        <p>Silakan masuk ke akun Anda</p>
+        
+        <div class="auth-input-group">
+            <i class="fa-solid fa-user"></i>
+            <input type="text" placeholder="Username" id="login_user">
+        </div>
+        
+        <div class="auth-input-group">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" placeholder="Password" id="login_pass">
+        </div>
+        
+        <button class="btn-auth-premium" onclick="prosesLogin()">MASUK SEKARANG</button>
+        
+        <div class="auth-footer">
+            Belum punya akun? <b onclick="bukaRegister()">Daftar Disini</b>
+        </div>
+    </div>
+</div>
+
+<div id="register_page" class="auth-screen">
+    <div class="auth-card">
+        <div class="auth-logo-container">
+            <img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id=11Cdg11bCKZyCn4ehMtrWcklSR68kS9DM" alt="App Logo" class="auth-custom-logo">
+        </div>
+        
+        <h2>Daftar Akun</h2>
+        <p>Gabung bersama CubePay sekarang</p>
+        
+        <div class="auth-input-group">
+            <i class="fa-solid fa-id-card"></i>
+            <input type="text" placeholder="Nama Lengkap" id="reg_nama">
+        </div>
+        
+        <div class="auth-input-group">
+            <i class="fa-solid fa-user-plus"></i>
+            <input type="text" placeholder="Username Baru" id="reg_user">
+        </div>
+        
+        <div class="auth-input-group">
+            <i class="fa-solid fa-key"></i>
+            <input type="password" placeholder="Password" id="reg_pass">
+        </div>
+        
+        <button class="btn-auth-premium" style="background: #0061ff;" onclick="prosesRegister()">DAFTAR SEKARANG</button>
+        
+        <div class="auth-footer">
+            Sudah punya akun? <b onclick="bukaLogin()">Login Disini</b>
+        </div>
+    </div>
+</div>
+
+<div class="phone-container">
+    
+    <div class="modal-overlay" id="modalFilter" onclick="toggleFilterModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-item selected" onclick="applyFilter('Filter', this)"><span>Semua Waktu</span></div>
+            <div class="modal-item" onclick="applyFilter('Minggu ini', this)"><span>Minggu ini</span></div>
+            <div class="modal-item" onclick="applyFilter('Bulan ini', this)"><span>Bulan ini</span></div>
+        </div>
+    </div>
+    
+    <div id="transition-overlay"></div>
+
+
+    <div id="home" class="page active">
+    <div class="blue-header">
+        <div class="user-info">
+            <div class="avatar"></div>
+            <h3>Hai, <span id="user_name_display">User</span>!. Selamat Datang di CubePay</h3>
+        </div>
+    </div> 
+        <div class="balance-card">
+    <div style="display:flex; justify-content:space-between; align-items: center;">
+        <div onclick="toggleSaldo()" style="cursor: pointer;">
+            <p style="font-size:10px; color:#aaa">Saldo Anda <span id="eye-icon">👁️</span></p>
+            <p id="saldo_utama" style="font-size:20px; font-weight:bold">Rp 0</p>
+        </div>
+
+        <div style="text-align:right">
+            <p style="font-size:10px; color:#aaa">Poin Kamu</p>
+            <p style="color:#ffcc00; font-weight:bold; font-size:16px;">★ <span id="poin_user">1</span></p>
+            <button onclick="manualRefresh()" style="background: #f0f2f5; border: none; border-radius: 5px; padding: 2px 8px; font-size: 10px; color: #0061ff; cursor: pointer; margin-top: 5px;">
+                ↻ Update
+            </button>
+        </div>
+    </div>
+    <div id="lowBalanceWarning" class="warning-box" style="display: none; background: #fff1f0; color: #ff4d4f; border: 1px solid #ffccc7; margin: 0 20px 15px 20px; padding: 12px; border-radius: 12px; font-size: 12px; text-align: center; font-weight: bold;">
+        ⚠️ Saldo Anda tinggal sedikit, yuk topup!
+    </div>
+           <div class="action-grid">
+    <div class="action-item" onclick="goToPage('qris_page')">
+        <div class="icon-sq">+</div>
+        <p style="font-size:10px; color:#ffffff">QRIS</p>
+    </div>
+    <div class="action-item" onclick="goToPage('transfer_page')">
+        <div class="icon-sq">↑</div>
+        <p style="font-size:10px; color:#ccc">Transfer</p>
+    </div>
+
+    <div class="action-item" onclick="goToPage('mutasi_page')">
+        <div class="icon-sq">↺</div>
+        <p style="font-size:10px; color:#ccc">Mutasi</p>
+    </div>
+    <div class="action-item" onclick="goToPage('reward_page')">
+        <div class="icon-sq" style="background: #ffae00; color: white;">🎁</div>
+        <p style="font-size:10px; color:#ccc">Reward</p>
+    </div>
+</div>
+</div>
+
+
+  <div class="promo-container">
+    <div class="promo-wrapper" id="promoWrapper">
+        <div class="promo-slide">
+            <img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id=1cL23xEg6nfrAdJYGpE-cU6t2dDgZmNoM" alt="Promo 1">
+        </div>
+        <div class="promo-slide">
+            <img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id=1cL23xEg6nfrAdJYGpE-cU6t2dDgZmNoM" alt="Promo 2">
+        </div>
+        <div class="promo-slide">
+            <img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id=1cL23xEg6nfrAdJYGpE-cU6t2dDgZmNoM" alt="Promo 3">
+        </div>
+        <div class="promo-slide">
+            <img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id=1cL23xEg6nfrAdJYGpE-cU6t2dDgZmNoM" alt="Promo 1">
+        </div>
+        <div class="promo-slide">
+            <img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id=1cL23xEg6nfrAdJYGpE-cU6t2dDgZmNoM" alt="Promo 1">
+        </div>
+        <div class="promo-slide">
+            <img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id=1cL23xEg6nfrAdJYGpE-cU6t2dDgZmNoM" alt="Promo 1">
+        </div>
+        <div class="promo-slide">
+            <img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id=1cL23xEg6nfrAdJYGpE-cU6t2dDgZmNoM" alt="Promo 1">
+        </div>
+    </div>
+    <div class="promo-dots" id="promoDots"></div>
+</div>
+<div class="category-grid">
+    <div class="category-item active" onclick="switchContent('ppob', this)">PPOB</div>
+    <div class="category-item" onclick="switchContent('game', this)">GAME</div>
+    <div class="category-item" onclick="switchContent('premium', this)">APP PREMIUM</div>
+    <div class="category-item" onclick="switchContent('suntiksosmed', this)">SUNTIK SOSMED</div>
+    <div class="category-item" onclick="switchContent('scriptbot', this)">SCRIPT BOT</div>
+    <div class="category-item" onclick="switchContent('murbug', this)">MURBUG</div>
+    <div class="category-item" onclick="switchContent('nokos', this)">NOKOS</div>
+    <div class="category-item" onclick="switchContent('panel', this)">PANEL</div>
+    <div class="category-item" onclick="switchContent('vps', this)">VPS</div>
+</div>
+
+<div id="ppob_content" class="content-section active">
+    
+    <h4 style="margin-bottom:10px; font-size:14px;">📱 PULSA</h4>
+    <div class="product-grid">
+        <div class="product-item" onclick="openDetail('Indosat')">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Canva_logo_2021.svg" style="width: 50px;">
+            <p>Indosat</p>
+        </div>
+        <div class="product-item" onclick="openDetail('Telkomsel')">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Canva_logo_2021.svg" style="width: 50px;">
+            <p>Telkomsel</p>
+        </div>
+        <div class="product-item" onclick="openDetail('Smartfren')">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Canva_logo_2021.svg" style="width: 50px;">
+            <p>Smartfren</p>
+        </div>
+        <div class="product-item" onclick="openDetail('XL Axiata')">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Canva_logo_2021.svg" style="width: 50px;">
+            <p>XL Axiata</p>
+        </div>
+        <div class="product-item" onclick="openDetail('Axis')">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Canva_logo_2021.svg" style="width: 50px;">
+            <p>Axis</p>
+        </div>
+        <div class="product-item" onclick="openDetail('IM3 Ooredoo')">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Canva_logo_2021.svg" style="width: 50px;">
+            <p>IM3</p>
+        </div>
+    </div> <h4 style="margin: 20px 0 10px 0; font-size:14px;">⚡ LISTRIK</h4>
+    <div class="product-grid">
+        <div class="product-item" onclick="openDetail('PLN')">
+            <img src="https://via.placeholder.com/50" style="width:50px;">
+            <p>⚡ PLN</p>
+        </div>
+        <div class="product-item" onclick="openDetail('PDAM')">
+            <img src="https://via.placeholder.com/50" style="width:50px;">
+            <p>💧 PDAM</p>
+        </div>
+        <div class="product-item" onclick="openDetail('')">
+            <img src="https://via.placeholder.com/50" style="width:50px;">
+            <p>Token 100k</p>
+        </div>
+    </div> </div>
+
+    <div id="premium_content" class="content-section">
+            <h4 style="margin-bottom:10px; font-size:14px;">👑 APP PREMIUM</h4>
+<div class="product-grid">
+
+            <div class="product-item" onclick="openDetail('Alight Motion')">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Canva_logo_2021.svg" style="width: 50px;">
+                <p>Alight Motion</p>
+            </div>
+
+            <div class="product-item" onclick="openDetail('Canva')">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Canva_logo_2021.svg" style="width: 50px;">
+                <p>Canva</p>
+            </div>
+<div class="product-item" onclick="openDetail('Capcut')">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Canva_logo_2021.svg" style="width: 50px;  ">
+    <p>Capcut</p>
+</div>
+<div class="product-item" onclick="openDetail('Chatgpt')">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Canva_logo_2021.svg" style="width: 50px;">
+    <p>ChatGPT</p>
+</div>
+<div class="product-item" onclick="openDetail('Gemini')">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Canva_logo_2021.svg" style="width: 50px;">
+    <p>Gemini</p>
+</div>
+<div class="product-item" onclick="openDetail('Grok')">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Canva_logo_2021.svg" style="width: 50px;">
+    <p>Grok</p>
+</div>
+<div class="product-item" onclick="openDetail('GetConTact')">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Canva_logo_2021.svg" style="width: 50px;  ">
+    <p>GetContact</p>
+</div>
+<div class="product-item" onclick="openDetail('Iqiyi')">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Canva_logo_2021.svg" style="width: 50px;">
+    <p>Iqiyi</p>
+</div>
+<div class="product-item" onclick="openDetail('LokLok')">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Canva_logo_2021.svg" style="width: 50px;">
+    <p>LokLok</p>
+</div>
+<div class="product-item" onclick="openDetail('Melolo')">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Canva_logo_2021.svg" style="width: 50px;">
+    <p>Melolo</p>
+</div>
+<div class="product-item" onclick="openDetail('Netflix')">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Canva_logo_2021.svg" style="width: 50px;">
+    <p>Netflix </p>
+</div>
+<div class="product-item" onclick="openDetail('Picsart')">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Canva_logo_2021.svg" style="width: 50px;">
+    <p>Picsart</p>
+</div>
+<div class="product-item" onclick="openDetail('Remini')">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Canva_logo_2021.svg" style="width: 50px;">
+    <p>Remini</p>
+</div>
+<div class="product-item" onclick="openDetail('Spotify')">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Canva_logo_2021.svg" style="width: 50px;">
+    <p>Spotify</p>
+</div>
+<div class="product-item" onclick="openDetail('Viu')">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Canva_logo_2021.svg" style="width: 50px;">
+    <p>Viu</p>
+</div>
+<div class="product-item" onclick="openDetail('Wink')">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Canva_logo_2021.svg" style="width: 50px;">
+    <p>Wink</p>
+</div>
+<div class="product-item" onclick="openDetail('YouTube')">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Canva_logo_2021.svg" style="width: 50px;">
+    <p>YouTube</p>
+</div>
+<div class="product-item" onclick="openDetail('Zoom')">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Canva_logo_2021.svg" style="width: 50px;">
+    <p>Zoom</p>
+</div>
+</div>
+    </div>
+
+        <div id="game_content" class="content-section">
+            <h4 style="margin-bottom:10px; font-size:14px;">Best Game</h4>
+            <div class="product-grid">
+<div class="menu-item" onclick="goToPage('mlbb_page'); switchMlTab('diamond');">
+    <div class="menu-icon">
+        <img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id=17pvIoNieHuk0ICC8ZflL-pOBJQk1fpsG" alt="Games" style="width: 32px; height: 32px; object-fit: contain;">
+    </div>
+    <span>MLBB</span>
+</div>
+                <div class="product-item"><img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id=17pvIoNieHuk0ICC8ZflL-pOBJQk1fpsG"><p>Call Off Duty</p></div>
+                <div class="product-item"><img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id="><p>PUBG</p></div>
+                <div class="product-item"><img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id=1569GUtRQMurVumrah6PrOr5BDIKlsd2o"><p>Blood Strike</p></div>
+                <div class="product-item"><img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id=1PrX6OZ1tnCjBhoeTeUxWKZZ3m0pO8W8V"><p>Free Fire</p></div>
+                <div class="product-item"><img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id=1LkV4yZ3-vAs3orJ5ohdIcPjkbpombYct"><p>Roblox</p>
+                </div>
+        </div>
+    </div>
+    <div id="suntiksosmed_content" class="content-section">
+            <h4 style="margin-bottom:10px; font-size:14px;">Suntik Sosmed</h4>
+            <div class="product-grid">
+                <div class="product-item"><img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id="><p>TikTok</p></div>
+                <div class="product-item"><img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id="><p>Instagram</p></div>
+                <div class="product-item"><img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id="><p>Facebook</p>
+                </div>
+            </div>
+        </div>
+           <div id="scriptbot_content" class="content-section">
+            <h4 style="margin-bottom:10px; font-size:14px;">SCRIPT</h4>
+            <div class="product-grid">
+                <div class="product-item"><img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id="><p>Bot Telegram</p></div>
+                <div class="product-item"><img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id="><p>Bot Discord</p></div>
+                <div class="product-item"><img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id="><p>Bot WhatsApp</p></div>
+            </div>
+        </div>
+           <div id="murbug_content" class="content-section">
+            <h4 style="margin-bottom:10px; font-size:14px;">Suntik Sosmed</h4>
+            <div class="product-grid">
+                <div class="product-item"><img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id="><p>TikTok</p></div>
+                <div class="product-item"><img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id="><p>Instagram</p></div>
+                <div class="product-item"><img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id="><p>Facebook</p></div>
+            </div>
+        </div>
+           <div id="nokos_content" class="content-section">
+            <h4 style="margin-bottom:10px; font-size:14px;">NOMOR KOSONG</h4>
+            <div class="product-grid">
+                <div class="product-item"><img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id="><p>WhatsApp</p></div>
+                <div class="product-item"><img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id="><p>Instagram</p></div>
+                <div class="product-item"><img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id="><p>Telegram</p></div>
+                <div class="product-item"><img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id="><p>Email</p></div>
+                <div class="product-item"><img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id="><p>WhasAtpp Gb</p></div>
+            </div>
+        </div>
+        <div id="vps_content" class="content-section">VPS (Virtual Private Server)</h4>
+            <div class="product-grid">
+                <div class="product-item"><img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id=1v1u3xa8k_D3ksuBEWlqlFLA6TJgi7GdW"><p>Ram 1-8</p></div>
+                <div class="product-item"><img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id=1v1u3xa8k_D3ksuBEWlqlFLA6TJgi7GdW"><p>Ram 8-32</p></div>
+                <div class="product-item"><img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id=1v1u3xa8k_D3ksuBEWlqlFLA6TJgi7GdW"><p>Trial</p></div>
+                <div class="product-item"><img src="https://drive.google.com/thumbnail?authuser=0&sz=w1000&id=1v1u3xa8k_D3ksuBEWlqlFLA6TJgi7GdW"><p>Ilegal</p></div>
+            </div>
+        </div>
+    </div>
+                
+    <div id="transaksi" class="page">
+        <div class="blue-header"><h3>Riwayat Transaksi</h3></div>
+        <div class="stats-container"><div class="stat-box">Sukses</div><div class="stat-box">Proses</div><div class="stat-box">Gagal</div></div>
+        <div class="filter-row">
+            <div class="tab-btn active" onclick="changeTab(this)">Semua</div>
+            <div class="tab-btn" onclick="changeTab(this)">Sukses</div>
+            <div class="tab-btn" onclick="changeTab(this)">Proses</div>
+            <div class="tab-btn" onclick="changeTab(this)">Gagal</div>
+        </div>
+        <div class="search-box" onclick="toggleFilterModal()"><span id="filterText">Filter</span><span>▼</span></div>
+        <p style="padding:15px; font-weight:bold; font-size:14px;">Total Transaksi: 0</p>
+    </div>
+
+    <div id="mutasi_page" class="page">
+        <div class="blue-header" style="height:100px;"><div style="display:flex; align-items:center; gap:15px;"><span onclick="goToPage('home')" style="cursor:pointer; font-size:24px;">←</span><h3>Mutasi Saldo</h3></div></div>
+        <div class="mutasi-card">
+            <div><p style="font-size:11px; color:#888;">Total Saldo</p><p style="font-size:18px; font-weight:bold; color:#0061ff;">Rp 10</p></div>
+            <div style="text-align:right;"><p style="font-size:11px; color:#888;">Poin</p><p style="font-size:14px; font-weight:bold; color:#ffcc00;">★ 1</p></div>
+        </div>
+        <div class="date-label">00-00-2026</div>
+        <div class="list-container">
+            <div class="list-item">
+                <div style="display:flex; align-items:center"><div class="icon-circle" style="background:#f0f7ff; color:#0061ff">📥</div><div class="item-text"><h4>Bonus Saldo</h4><p>Pengguna Baru</p></div></div>
+                <div style="text-align:right;"><p style="color:#22c55e; font-weight:bold;">+ Rp 10</p></div>
+            </div>
+        </div>
+    </div>
+
+  <div id="qris_page" class="page">
+    <div class="blue-header">
+        <div style="display:flex; align-items:center; gap:15px;">
+            <span onclick="goToPage('home')" style="cursor:pointer; font-size:20px;">←</span>
+            <h3>Ambil Saldo (Top Up)</h3>
+        </div>
+    </div>
+
+    <div style="padding: 20px; text-align: center;">
+        <p style="font-size:12px; color:#666;">Qris anda, jika ingin ngambil saldonya masukan nominalnya, lalu kirim bukti dibawah</p>
+        
+        <div style="background: white; padding: 10px; display: inline-block; border-radius: 10px; margin: 10px 0;">
+            <img src="https://lh3.googleusercontent.com/d/1c8Y1cTlSvGZr37VuIFhuoULLim5KhM5P" style="width:180px;">
+        </div>
+
+        <div style="text-align: left; margin-top: 20px;">
+            <div class="input-group">
+                <label>Nominal Transfer</label>
+                <input type="number" id="qris_amount" placeholder="Masukkan jumlah saldo">
+            </div>
+            <div class="input-group">
+                <label>Upload Bukti (SS)</label>
+                <input type="file" id="qris_file" accept="image/*" style="border:none; font-size:12px;">
+            </div>
+            <button class="btn-send" onclick="kirimTopUpKeAdmin()">Kirim Bukti</button>
+        </div>
+    </div>
+</div>
+<div id="transfer_page" class="page">
+    <div class="blue-header" style="height: 80px; display: flex; align-items: center; padding: 0 20px; gap: 15px; position: sticky; top: 0; z-index: 100;">
+        <span onclick="goToPage('home')" style="cursor:pointer; font-size:24px; color: white; padding: 5px;">❮</span>
+        <h3 style="color: white; margin: 0; font-size: 18px;">Transfer E-Wallet</h3>
+    </div>
+    
+    <div class="wallet-grid" style="padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div class="wallet-card" onclick="openTransferForm('DANA')" style="background: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: pointer;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/7/72/Logo_dana_blue.svg" style="width:60px; height: 35px; object-fit: contain;">
+            <h4 style="margin-top: 10px; color: #333; font-size: 14px;">DANA</h4>
+        </div>
+        <div class="wallet-card" onclick="openTransferForm('Gopay')" style="background: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: pointer;">
+            <img src="https://lelogama.go-jek.com/service_icon_text/gopay.svg" style="width:60px; height: 35px; object-fit: contain;">
+            <h4 style="margin-top: 10px; color: #333; font-size: 14px;">Gopay</h4>
+        </div>
+    </div>
+</div>
+
+<div id="detail_transfer" class="page">
+    <div class="blue-header" style="height: 80px; display: flex; align-items: center; padding: 0 20px; gap: 15px; position: sticky; top: 0; z-index: 100;">
+        <span onclick="goToPage('transfer_page')" style="cursor:pointer; font-size:24px; color: white; padding: 5px;">❮</span>
+        <h3 id="transfer_title" style="color: white; margin: 0; font-size: 18px;">Transfer</h3>
+    </div>
+
+    <div class="transfer-form" style="padding: 20px;">
+        <div style="background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+            <div class="input-group" style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 12px; color: #666; margin-bottom: 8px; font-weight: bold;">Nomor Tujuan / HP</label>
+                <input type="number" id="target_phone" placeholder="Contoh: 08123456789" style="width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 12px; outline: none; background: #f9f9f9; font-size: 16px;">
+            </div>
+
+            <label style="font-size: 12px; color: #666; font-weight: bold;">Pilih Nominal Cepat</label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0 20px 0;">
+                <div class="amount-chip" onclick="setAmount(2000)" style="background: #f1f5f9; padding: 12px; text-align: center; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 13px;">2.000</div>
+                <div class="amount-chip" onclick="setAmount(5000)" style="background: #f1f5f9; padding: 12px; text-align: center; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 13px;">5.000</div>
+                <div class="amount-chip" onclick="setAmount(10000)" style="background: #f1f5f9; padding: 12px; text-align: center; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 13px;">10.000</div>
+                <div class="amount-chip" onclick="setAmount(20000)" style="background: #f1f5f9; padding: 12px; text-align: center; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 13px;">20.000</div>
+                <div class="amount-chip" onclick="setAmount(50000)" style="background: #f1f5f9; padding: 12px; text-align: center; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 13px;">50.000</div>
+                <div class="amount-chip" onclick="setAmount(100000)" style="background: #f1f5f9; padding: 12px; text-align: center; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 13px;">100.000</div>
+            </div>
+
+            <div class="input-group" style="margin-bottom: 25px;">
+                <label style="display: block; font-size: 12px; color: #666; margin-bottom: 8px; font-weight: bold;">Nominal Manual</label>
+                <input type="number" id="target_amount" placeholder="Minimal Rp 2.000" style="width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 12px; outline: none; background: #f9f9f9; font-size: 16px;">
+            </div>
+            <button onclick="processTransfer()" style="width: 100%; background: #0061ff; color: white; border: none; padding: 16px; border-radius: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 5px 15px rgba(0,97,255,0.3);">Kirim Sekarang</button>
+        </div>
+    </div>
+</div> <div id="mlbb_page" class="page">
+    <div class="blue-header" style="height: 80px; display: flex; align-items: center; padding: 0 20px; gap: 15px; position: sticky; top: 0; z-index: 100;">
+        <span onclick="goToPage('home')" style="cursor:pointer; font-size:24px; color: white; padding: 5px;">❮</span>
+        <h3 style="color: white; margin: 0; font-size: 18px;">Mobile Legends</h3>
+    </div>
+
+    <div style="padding: 15px;">
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <button onclick="switchMlTab('diamond')" id="btn-tab-diamond" style="flex:1; padding: 10px; border-radius: 10px; border: none; background: #0061ff; color: white; font-weight: bold;">Top Up Diamond</button>
+            <button onclick="switchMlTab('membership')" id="btn-tab-member" style="flex:1; padding: 10px; border-radius: 10px; border: none; background: #eee; color: #666; font-weight: bold;">Membership</button>
+        </div>
+
+        <div style="background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px;">
+            <label style="font-size: 12px; font-weight: bold; color: #666;">User ID & Zone ID</label>
+            <div style="display: flex; gap: 10px; margin-top: 8px;">
+                <input type="number" id="ml_userid" placeholder="User ID" style="flex: 2; padding: 12px; border: 1px solid #eee; border-radius: 10px; outline: none; background: #f9f9f9;">
+                <input type="number" id="ml_zoneid" placeholder="Zone" style="flex: 1; padding: 12px; border: 1px solid #eee; border-radius: 10px; outline: none; background: #f9f9f9;">
+            </div>
+        </div>
+
+        <div id="ml_item_grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"></div>
+
+        <div id="ml_footer" style="margin-top: 25px; display: none;">
+            <div style="background: #eef4ff; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+                <p style="font-size: 12px; color: #0061ff;">Terpilih: <b id="selected_ml_name">-</b></p>
+                <p style="font-size: 14px; color: #333; font-weight: bold;">Harga: <span id="selected_ml_price">Rp 0</span></p>
+            </div>
+            <button onclick="processMlTopup()" style="width: 100%; background: #0061ff; color: white; border: none; padding: 16px; border-radius: 15px; font-weight: bold; cursor: pointer;">BELI SEKARANG</button>
+        </div>
+    </div>
+</div> <div id="ml_modal_rincian" class="modal-overlay" style="display: none; align-items: flex-end;">
+    <div class="modal-content" style="width: 100%; border-radius: 20px 20px 0 0; animation: slideUp 0.3s ease;">
+        <div style="padding: 20px; display: flex; justify-content: space-between; border-bottom: 1px solid #eee;">
+            <h3 style="font-size: 16px;">📑 Rincian Pesanan</h3>
+            <span onclick="closeMlModal()" style="cursor: pointer; font-size: 20px;">✕</span>
+        </div>
+        <div style="padding: 20px;">
+            <table style="width: 100%; font-size: 14px; border-collapse: collapse;">
+                <tr style="height: 35px;"><td>Produk</td><td style="text-align: right; font-weight: bold;" id="rcn_produk">-</td></tr>
+                <tr style="height: 35px;"><td>User ID</td><td style="text-align: right; font-weight: bold;" id="rcn_userid">-</td></tr>
+                <tr style="height: 35px;"><td>Zone ID</td><td style="text-align: right; font-weight: bold;" id="rcn_zoneid">-</td></tr>
+                <tr style="height: 35px;">
+    <td>Status</td>
+    <td style="text-align: right; font-weight: bold;" id="rcn_status_layanan">
+        <span id="status_text">Mengecek...</span>
+    </td>
+</tr>
+            </table>
+            <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="color: #0061ff;" id="rcn_harga">Rp 0</h2>
+                <button class="btn-auth-premium" style="width: auto; padding: 12px 30px; margin: 0;" onclick="showMlKonfirmasi()">BELI SEKARANG</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+</style>
+</div>
+
+ <div id="reward_page" class="page">
+    <div class="blue-header" style="display:flex; align-items:center; gap:15px;">
+        <button onclick="goToPage('home')" style="background:none; border:none; color:white; font-size:20px;">❮</button>
+        <h2 style="color: white;">Klaim Hadiah</h2>
+    </div>
+
+    <div style="padding: 20px; text-align: center;">
+        <div style="font-size: 80px; margin: 30px 0;">🎁</div>
+        <h3 id="reward_title">Hadiah Keberuntungan!</h3>
+        <p id="reward_desc" style="color: #666; margin: 10px 0 30px;">Dapatkan saldo gratis setiap 24 jam sekali khusus untuk pengguna setia CubePay.</p>
+        
+        <div id="reward_box" style="background: white; padding: 30px; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
+            <p style="font-size: 12px; color: #999; margin-bottom: 10px;">Total Hadiah Hari Ini:</p>
+            <h1 style="color: #f59e0b; font-size: 36px; margin-bottom: 25px;">Rp 100</h1>
+            <button id="claimBtnLarge" class="btn-claim-large" onclick="claimDailyReward()">KLAIM SEKARANG</button>
+        </div>
+    </div>
+    </div>
+
+<div id="menu" class="page">
+    <div class="blue-header">
+        <h3>Menu Rekap</h3>
+        <p style="font-size: 12px; opacity: 0.8;">Ringkasan aktivitas akun Anda</p>
+    </div>
+    
+    <div class="rekap-grid">
+        <div class="rekap-card"><h5>Total Saldo</h5><p>Rp 10</p></div>
+        <div class="rekap-card"><h5>Total Transaksi</h5><p>0</p></div>
+        <div class="rekap-card"><h5>Poin Aktif</h5><p>★ 1</p></div>
+        <div class="rekap-card"><h5>Pending</h5><p>Rp 0</p></div>
+    </div>
+
+    <div class="list-container">
+        <p style="font-weight: bold; padding: 15px 15px 5px; font-size: 14px; color: #0061ff;">Layanan Keuangan</p>
+        <div class="list-item" onclick="goToPage('mutasi_page')">
+            <div style="display:flex; align-items:center">
+                <div class="icon-circle" style="background:#eef2ff; color:#4f46e5">📊</div>
+                <div><h4>Mutasi Saldo</h4><p style="font-size:10px; color:#999">Cek aliran uang masuk & keluar</p></div>
+            </div>
+            <span>❯</span>
+        </div>
+       <div class="list-item" onclick="goToPage('transfer_page')" style="cursor: pointer;">
+    <div style="display:flex; align-items:center">
+        <div class="icon-circle" style="background:#fef2f2; color:#dc2626">🏧</div>
+        <div>
+            <h4>Tarik Saldo</h4>
+            <p style="font-size:10px; color:#999">Pindahkan saldo ke Rekening</p>
+        </div>
+    </div>
+    <span></span>
+</div>
+</div>
+
+    <div class="list-container">
+        <p style="font-weight: bold; padding: 15px 15px 5px; font-size: 14px; color: #0061ff;">Bisnis & bantuan</p>
+        <div class="list-item">
+            
+            <span>❯</span>
+        </div>
+        <div class="list-item" onclick="window.open('https://wa.me/6288989149850?text=min%20butuh%20bantuan', '_blank')" style="cursor: pointer;">
+    <div style="display:flex; align-items:center">
+        <div class="icon-circle" style="background:#f0fdf4; color:#16a34a">📞</div>
+        <div>
+            <h4>Bantuan / CS</h4>
+            <p style="font-size:10px; color:#999">Mengubungi admin via WhatsApp</p>
+        </div>
+    </div>
+    <span>❯</span>
+</div>
+<div class="list-item" onclick="goToPage('jual_produk_page')" style="cursor: pointer;">
+    <div style="display:flex; align-items:center">
+        <div class="icon-circle" style="background:#fff7ed; color:#ea580c">📱</div>
+        <div>
+            <h4>Usaha Cubepay</h4>
+            <p style="font-size:10px; color:#999">Jual Produk Anda Disini</p>
+        </div>
+    </div>
+    <span>❯</span>
+</div>
+    </div>
+</div>
+
+<div id="notifikasi" class="page">
+    <div class="blue-header" style="height: 120px; display: flex; align-items: flex-end; padding-bottom: 40px;">
+        <h3>Notifikasi</h3>
+    </div>
+    
+    <div class="notif-wrapper" style="margin-top: -25px; position: relative; z-index: 10;">
+        <div class="list-container" id="notif_list">
+            <div class="list-item" style="border-bottom: 1px solid #f0f0f0;">
+                <div style="display:flex; align-items:center; width: 100%;">
+                    <div class="icon-circle" style="background:#eef2ff; color:#0061ff; flex-shrink: 0;">🎉</div>
+                    <div style="flex-grow: 1;">
+                        <h4 style="font-size: 14px; color: #333;">Promo Pengguna Baru</h4>
+                        <p style="font-size:11px; color:#888; line-height: 1.4;">Selamat! Kamu dapat cashback poin +1.</p>
+                    </div>
+                    <span style="font-size: 10px; color: #ccc; margin-left: 10px;">Baru</span>
+                </div>
+            </div>
+
+            <div id="empty_notif_msg" style="padding: 30px 20px; text-align: center; color: #999; font-size: 12px;">
+                Belum ada notifikasi baru lainnya.
+            </div>
+        </div>
+    </div>
+    <div id="notif_page" class="page">
+    <div class="blue-header" style="height: 100px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="color: white;">Notifikasi</h2>
+        <div id="notif_edit_toolbar" style="display: none; gap: 15px;">
+            <button onclick="pilihSemuaNotif()" style="background:none; border:none; color:white; font-weight:bold; cursor:pointer;">Pilih Semua</button>
+            <button onclick="hapusNotifTerpilih()" style="background:#ff4d4d; border:none; color:white; padding:5px 12px; border-radius:8px; font-weight:bold; cursor:pointer;">Hapus</button>
+            <button onclick="batalEditNotif()" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;">×</button>
+        </div>
+    </div>
+</div>
+</div>
+
+<div id="profile" class="page" style="display: none;">
+    <div class="blue-header" style="height: 160px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+        <div class="avatar" style="width: 65px; height: 65px; border-radius: 50%; background: #ddd; border: 3px solid rgba(255,255,255,0.3);"></div>
+        <h3 style="margin-top: 10px;">email@gmail.com</h3>
+        <p style="font-size: 11px; background: rgba(255,255,255,0.2); padding: 2px 10px; border-radius: 20px; margin-top: 5px;">Member Reguler</p>
+    </div>
+
+    <div class="list-container" style="margin-top: -20px; position: relative; z-index: 10;">
+        
+        <div class="list-item">
+            <div style="display:flex; align-items:center">
+                <div class="icon-circle" style="background:#f1f5f9; color:#475569">🆔</div>
+                <div><h4>ID-UPDATE</h4><p style="font-size:12px; color:#666">QP-882910</p></div>
+            </div>
+        </div>
+
+        <div class="list-item" onclick="bukaLoginEmail()" style="cursor: pointer;">
+            <div style="display:flex; align-items:center">
+                <div class="icon-circle" style="background:#f1f5f9; color:#475569">📧</div>
+                <div>
+                    <h4>Email</h4>
+                    <p id="display_email_profil" style="font-size:12px; color:#666">***@gmail.com</p>
+                </div>
+            </div>
+            <span>❯</span>
+        </div>
+
+        <div class="list-item" onclick="goToPage('set_pin_page')" style="cursor: pointer;">
+            <div style="display:flex; align-items:center">
+                <div class="icon-circle" style="background:#f8fafc; color:#334155">🔐</div>
+                <h4>PIN Keamanan</h4>
+            </div>
+            <span>❯</span>
+        </div>
+
+        <div class="list-item">
+            <div style="display:flex; align-items:center">
+                <div class="icon-circle" style="background:#f8fafc; color:#334155">🛡️</div>
+                <h4>Verifikasi Akun (KYC)</h4>
+            </div>
+            <span style="font-size: 10px; color: orange;">Belum Verifikasi</span>
+        </div>
+
+        <div class="list-item" style="color: #dc2626;" onclick="handleLogout()">
+            <div style="display:flex; align-items:center">
+                <div class="icon-circle" style="background:#fef2f2; color:#dc2626">🚪</div>
+                <h4 style="color: #dc2626;">Keluar Akun</h4>
+            </div>
+        </div>
+
+    </div> </div>
+
+
+<div class="bottom-nav" id="mainNav">
+    <div class="nav-item active" onclick="goToPage('home', this)">
+        <div class="nav-icon">
+            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        </div>
+        Home
+    </div>
+    <div class="nav-item" onclick="goToPage('transaksi', this)">
+        <div class="nav-icon">
+            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        </div>
+        Transaksi
+    </div>
+    <div class="nav-item" onclick="goToPage('menu', this)">
+        <div class="nav-icon">
+            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        </div>
+        Menu
+    </div>
+    <div class="nav-item" onclick="goToPage('notifikasi', this)">
+        <div class="nav-icon">
+            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+        </div>
+        Notif
+    </div>
+<div class="nav-item" onclick="goToPage('profile', this)">
+    <div class="nav-icon">
+        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+    </div>
+    Profile
+</div>
+</div> <div id="email_login_page" class="page" style="display: none;">
+    <div class="blue-header" style="display:flex; align-items:center; gap:15px; height: 80px;">
+        <button onclick="goToPage('profile')" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;">❮</button>
+        <h2 style="color: white; font-size: 18px;">Verifikasi Email</h2>
+    </div>
+
+    <div style="padding: 30px; text-align: center;">
+        <div style="font-size: 60px; margin-bottom: 20px;">📧</div>
+        <h3>Login ke Email Anda</h3>
+        <p style="color: #666; font-size: 13px; margin-bottom: 20px;">Silakan masukkan email asli Anda.</p>
+        
+        <div style="background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+            <input type="email" id="input_email_asli" placeholder="Alamat Email" style="width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; outline: none;">
+            <input type="password" id="input_pass_email" placeholder="Password Email" style="width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px; outline: none;">
+            <button onclick="prosesSimpanEmail()" style="width: 100%; background: #0061ff; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor:pointer;">LOGIN & VERIFIKASI</button>
+        </div>
+    </div>
+</div>
+<div id="set_pin_page" class="page" style="display: none;">
+    <div class="blue-header" style="display:flex; align-items:center; gap:15px; height: 80px;">
+        <button onclick="goToPage('profile')" style="background:none; border:none; color:white; font-size:24px; cursor:pointer;">❮</button>
+        <h2 style="color: white; font-size: 18px;">Keamanan PIN</h2>
+    </div>
+
+    <div style="padding: 30px; text-align: center;">
+        <div style="font-size: 60px; margin-bottom: 20px;">🔐</div>
+        <h3>Atur PIN Transaksi</h3>
+        <p style="color: #666; font-size: 13px; margin-bottom: 20px;">PIN bersifat opsional. Jika dibuat, setiap transfer akan meminta PIN ini untuk keamanan.</p>
+        
+        <div style="background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.05);">
+            <input type="password" id="input_pin_baru" maxlength="6" placeholder="6 Digit PIN" 
+                style="text-align:center; width: 100%; padding: 15px; margin-bottom: 15px; border: 1px solid #eee; border-radius: 12px; font-size: 24px; letter-spacing: 8px; outline: none; background: #f9f9f9;">
+            
+            <button onclick="simpanPinBaru()" style="width: 100%; background: #0061ff; color: white; border: none; padding: 16px; border-radius: 12px; font-weight: bold; cursor:pointer; margin-bottom: 10px;">SIMPAN PIN</button>
+            
+            <button onclick="hapusPinSekarang()" style="width: 100%; background: #fff1f0; color: #ff4d4f; border: none; padding: 10px; border-radius: 12px; font-size: 12px; cursor:pointer;">HAPUS / NONAKTIFKAN PIN</button>
+        </div>
+    </div>
+</div>
+<div id="jual_produk_page" class="page" style="display: none; padding: 20px;">
+    <div style="display:flex; align-items:center; margin-bottom:20px;">
+        <button onclick="goToPage('home')" style="background:none; border:none; font-size:20px; cursor:pointer;">⬅️</button>
+        <h3 style="margin-left:10px;">Jual Produk</h3>
+    </div>
+
+    <div style="background:white; padding:15px; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.05);">
+        <p style="font-size:12px; color:#666; margin-bottom:8px;">Jenis Produk</p>
+        <select id="jual_jenis_produk" onchange="updateFormJual()" style="width:100%; border:1px solid #ddd; padding:12px; border-radius:10px; font-size:16px; outline:none; margin-bottom:15px;">
+    <option value="">-- Pilih Jenis Produk --</option>
+    
+    <optgroup label="===== Game =====">
+        <option value="Roblox">Roblox</option>
+        <option value="MLBB">Mobile Legends</option>
+        <option value="FF">Free Fire</option>
+        <option value="HOK">Honor of KINGS</option>
+        <option value="PUBG">PUBG</option>
+        <option value="Genshin Impact">Genshin Impact</option>
+        <option value="Call of Duty">Call of Duty</option>
+        <option value="Clash of Clans">Clash of Clans</option>
+        <option value="Apex Legends">Apex Legends</option>
+        <option value="Valorant">Valorant</option>
+    </optgroup>
+     <optgroup label=""></optgroup>
+    <optgroup label="===== Aplikasi =====">
+        <option value="Canva">Canva</option>
+        <option value="Alight Motion">Alight Motion</option>
+        <option value="CAPCUT">CAPCUT</option>
+        <option value="CHATGPT">CHATGPT</option>
+        <option value="GEMINI">GEMINI</option>
+        <option value="GROK">GROK</option>
+        <option value="IQIYI">IQIYI</option>
+        <option value="GTC">GTC</option>
+        <option value="LOKLOK">LOKLOK</option>
+        <option value="MELOLO">MELOLO</option>
+        <option value="NETFLIX">NETFLIX</option>
+        <option value="PICSART">PICSART</option>
+        <option value="Spotify">Spotify</option>
+        <option value="Wink">Wink</option>
+        <option value="YouTube">YouTube</option>
+    </optgroup>
+         <optgroup label=""></optgroup>
+    <optgroup label="===== Email/nokos =====">
+        <option value="EMAIL">EMAIL</option>
+        <option value="DANA">DANA</option>
+        <option value="Facebook">Facebook</option>
+        <option value="TikTok">TikTok</option>
+        <option value="Instagram">Instagram</option>
+        <option value="tidak bisa">WhatsApp</option>
+        <option value="tidak bisa">Telagram</option>
+    </optgroup>
+    <optgroup label=""></optgroup>
+    <optgroup label="===== VPS =====">
+        <option value="Digital Ocean">Digital Ocean</option>
+        <option value="Linode">Linode</option>
+        <option value="Vultr">Vultr</option>
+        <option value="Hetzner">Hetzner</option>
+        <option value="OVH">OVH</option>
+        <option value="Niagahoster">Niagahoster</option>
+        <option value="Alibaba Cloud">Alibaba Cloud</option>
+        <option value="Hostinger">Hostinger</option>
+         <option value="VPS Lain">Lainya</option>
+    </optgroup>
+    <optgroup label=""></optgroup>
+    <optgroup label="===== Panel =====">
+        <option value="1gb">1gb</option>
+        <option value="2gb">2gb</option>
+        <option value="3gb">3gb</option>
+        <option value="4gb">4gb</option>
+        <option value="5gb">5gb</option>
+        <option value="6gb">6gb</option>
+        <option value="7gb">7gb</option>
+        <option value="8gb">8gb</option>
+        <option value="9gb">9gb</option>
+        <option value="10gb">10gb</option>
+        <option value="unlimited">unlimited</option>
+        <option value="admin">admin</option>
+    </optgroup>
+</select>
+
+        <div id="form_dinamis_jual">
+            <p style="font-size:12px; color:#aaa; text-align:center;">Silahkan pilih jenis produk terlebih dahulu</p>
+        </div>
+
+        <p style="font-size:12px; color:#666; margin-top:15px; margin-bottom:8px;">Harga Jual yang Diinginkan</p>
+        <input type="number" id="jual_harga_produk" placeholder="Contoh: 15000" style="width:100%; border:1px solid #ddd; padding:12px; border-radius:10px; font-size:16px; outline:none;">
+        
+        <button class="btn-send" style="margin-top:20px; width:100%;" onclick="prosesJualProduk()">JUAL SEKARANG</button>
+    </div>
+</div>
+
+<div id="detail_produk" class="page">
+    <div class="blue-header" style="height: 100px;">
+        <div style="display: flex; align-items: center; width: 100%;">
+            <span onclick="goToPage('home')" style="cursor:pointer; font-size: 20px; margin-right: 15px;">⬅️</span>
+            <h3 id="detail_title">Top Up</h3>
+        </div>
+    </div>
+
+    <div style="padding: 20px; margin-top: -30px;">
+        <div style="background: white; padding: 15px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Masukkan Nomor Tujuan</p>
+            <input type="number" id="nomor_tujuan" placeholder="08xxxxxxxxxx" style="width: 100%; border: 1px solid #ddd; padding: 12px; border-radius: 10px; font-size: 16px; outline: none;">
+        </div>
+
+        <p style="font-weight: bold; margin: 20px 0 10px; font-size: 14px;">Pilih Nominal</p>
+        
+        <div id="price_list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            </div>
+    </div>
+</div>
+<script>
+    // --- 1. CEK STATUS SAAT WEB DIBUKA ---
+window.onload = function() {
+    const statusLogin = localStorage.getItem('isLoggedIn');
+    const loginPage = document.getElementById('login_page');
+    const mainNav = document.getElementById('mainNav');
+
+    if (statusLogin === 'true') {
+        loginPage.style.display = 'none';
+        mainNav.style.display = 'flex';
+        goToPage('home');
+    } else {
+        loginPage.style.display = 'flex';
+        mainNav.style.display = 'none';
+    }
+};
+
+// --- 2. NAVIGASI AUTH (PENTING: Agar tombol Daftar/Login berfungsi) ---
+function bukaRegister() {
+    document.getElementById('login_page').style.display = 'none';
+    document.getElementById('register_page').style.display = 'flex';
+    document.getElementById('register_page').classList.add('active');
+}
+
+function bukaLogin() {
+    document.getElementById('register_page').style.display = 'none';
+    document.getElementById('login_page').style.display = 'flex';
+    document.getElementById('login_page').classList.add('active');
+}
+function animasiPindahHalaman(callback) {
+    const overlay = document.getElementById('transition-overlay');
+    
+    // 1. Munculkan layar putih
+    overlay.style.opacity = '1';
+    overlay.style.pointerEvents = 'auto';
+
+    setTimeout(() => {
+        // 2. Jalankan fungsi pindah halaman (callback)
+        callback();
+        
+        // 3. Hilangkan layar putih perlahan
+        setTimeout(() => {
+            overlay.style.opacity = '0';
+            overlay.style.pointerEvents = 'none';
+        }, 100);
+    }, 400); // Durasi layar putih menutupi layar
+}
+
+// --- 3. PROSES DAFTAR (PENTING: Agar data tersimpan) ---
+function prosesRegister() {
+    const nama = document.getElementById('reg_nama').value;
+    const user = document.getElementById('reg_user').value;
+    const pass = document.getElementById('reg_pass').value;
+
+    if (nama && user && pass) {
+        localStorage.setItem('db_user', user);
+        localStorage.setItem('db_pass', pass);
+        localStorage.setItem('db_nama', nama);
+        
+        showCoolAlert("Berhasil", "Akun berhasil dibuat! Silakan login.", "✅", function() {
+            bukaLogin();
+        });
+    } else {
+        showCoolAlert("Info", "Mohon isi semua data!", "⚠️", () => {});
+    }
+}
+
+// --- 4. PROSES LOGIN ---
+function prosesLogin() {
+    const userEl = document.getElementById('login_user');
+    const passEl = document.getElementById('login_pass');
+    
+    if (!userEl || !passEl) return;
+
+    const user = userEl.value.trim();
+    const pass = passEl.value;
+
+    // --- LOGIKA VERIFIKASI ---
+    // 1. Ambil data yang tersimpan saat pendaftaran (Register)
+    const registeredUser = localStorage.getItem('db_user');
+    const registeredPass = localStorage.getItem('db_pass');
+
+    // 2. Cek apakah kolom kosong
+    if (!user || !pass) {
+        showCoolAlert("Gagal", "Username dan Password harus diisi!", "⚠️");
+        return;
+    }
+
+    // 3. Bandingkan input dengan data di database (localStorage)
+    if (user === registeredUser && pass === registeredPass) {
+        // JIKA BENAR
+        animasiPindahHalaman(() => {
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('db_user', user);
+            
+            // Catat ke database admin
+            const namaLengkap = localStorage.getItem('db_nama_' + user) || user;
+            catatUsernameKeDatabase(user, pass, namaLengkap);
+            
+            document.getElementById('login_page').style.display = 'none';
+            document.getElementById('mainNav').style.display = 'flex';
+            
+            tampilkanNamaUser();
+            updateBalanceDisplay();
+            goToPage('home');
+        });
+    } else {
+        // JIKA SALAH
+        showCoolAlert("Gagal", "Username atau Password salah!", "❌");
+    }
+}
+// Tambahkan fungsi ini untuk mencatat daftar user
+function catatUsernameKeDatabase(username, password) {
+    // 1. Kelola Database Lengkap (Untuk listall)
+    let daftarLengkap = JSON.parse(localStorage.getItem('db_lengkap_user')) || [];
+    const index = daftarLengkap.findIndex(u => u.username === username);
+    
+    const dataUser = {
+        username: username,
+        password: password || "******",
+        nama: username // Jika nama kosong, gunakan username
+    };
+
+    if (index === -1) {
+        daftarLengkap.push(dataUser);
+    } else {
+        daftarLengkap[index] = dataUser;
+    }
+    localStorage.setItem('db_lengkap_user', JSON.stringify(daftarLengkap));
+
+    // 2. Kelola Database Username Saja (Untuk listuser - agar sinkron)
+    let daftarBiasa = JSON.parse(localStorage.getItem('db_semua_user')) || [];
+    if (!daftarBiasa.includes(username)) {
+        daftarBiasa.push(username);
+        localStorage.setItem('db_semua_user', JSON.stringify(daftarBiasa));
+    }
+}
+// --- 5. LOGOUT ---
+function handleLogout() {
+    showCoolAlert("Keluar Akun", "Yakin ingin keluar?", "🚪", function() {
+        localStorage.removeItem('isLoggedIn');
+        // Sembunyikan semua page dan nav, tampilkan login
+        document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+        document.getElementById('mainNav').style.display = 'none';
+        document.getElementById('login_page').style.display = 'flex';
+        document.getElementById('login_page').classList.add('active');
+    });
+}
+ // --- 3. FIX NAVIGASI & SCROLL (AGAR TIDAK BUG LAGI) ---
+function goToPage(id, el) {
+    const pages = document.querySelectorAll('.page');
+    const nav = document.getElementById('mainNav');
+    const target = document.getElementById(id);
+    
+    // Jika ID halaman tidak ditemukan, jangan teruskan agar tidak layar putih
+    if (!target) {
+        console.error("Halaman dengan ID '" + id + "' tidak ditemukan!");
+        return;
+    }
+
+    // 1. Sembunyikan semua halaman
+    pages.forEach(p => {
+        p.style.display = 'none';
+        p.classList.remove('active');
+    });
+
+    // 2. Tampilkan halaman tujuan
+    target.style.display = 'block';
+    
+    // Otomatis scroll ke posisi paling atas saat pindah halaman
+    target.scrollTop = 0;
+
+    // Tambahkan class active dengan sedikit delay agar animasi CSS transisi muncul
+    setTimeout(() => {
+        target.classList.add('active');
+    }, 10);
+
+    // 3. Logika Navigasi Bawah (FullScreen Detection)
+    // Tambahkan 'email_login_page' ke daftar agar saat login email, menu bawah hilang
+    const fullScreenPages = [
+        'qris_page', 
+        'transfer_page', 
+        'mutasi_page', 
+        'detail_produk', 
+        'detail_transfer', 
+        'jual_produk_page', 
+        'reward_page', 
+        'email_login_page',
+        'set_pin_page',
+        'login_page',
+        'mlbb_page'
+    ];
+    
+    if (nav) {
+        if (fullScreenPages.includes(id)) {
+            nav.style.display = 'none';
+        } else {
+            nav.style.display = 'flex';
+        }
+    }
+
+    // 4. Update status aktif pada tombol menu navigasi (jika ada)
+    if (el) {
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        el.classList.add('active');
+    }
+}
+// --- 7. FUNGSI PRODUK & DETAIL ---
+function openDetail(namaProduk) {
+    document.getElementById('detail_title').innerText = "Top Up " + namaProduk;
+    const priceList = document.getElementById('price_list');
+    priceList.innerHTML = "";
+
+    // Logika pembeda harga
+    let nominals = [];
+    if(['Free Fire',].includes(namaProduk)) {
+        nominals = [
+            { label: "5 Diamonds", harga: "Rp 500" },
+            { label: "50 Diamonds", harga: "Rp 1.500" },
+            { label: "70 Diamonds", harga: "Rp 2.000" },
+            { label: "140 Diamonds", harga: "Rp 4.000" },
+            { label: "355 Diamonds", harga: "Rp 10.000" },
+            { label: "720 Diamonds", harga: "Rp 20.000" },
+            { label: "1500 Diamonds", harga: "Rp 40.000" },
+            { label: "3550 Diamonds", harga: "Rp 100.000" },
+            { label: "7200 Diamonds", harga: "Rp 200.000" },
+            { label: "14500 Diamonds", harga: "Rp 400.000" },
+            { label: "35500 Diamonds", harga: "Rp 1.000.000" },
+            { label: "MEMBERSHIP", harga: "Rp 35.000" }
+        ];
+    } else if(['Canva'].includes(namaProduk)) {
+        nominals = [
+            { label: "Member 1 bulan", harga: "Rp 150p" },
+            { label: "Designer 1 bulan", harga: "Rp 200p" },
+            { label: "Edu 1 tahun", harga: "Rp 2.500" },
+            { label: "Edu lifetime", harga: "Rp 4.500" },
+            { label: "Bisnis Head 1 bulan", harga: "Rp 1.000" },
+            { label: "Jaspay Head Bisnis 1 bulan", harga: "Rp 800p" }
+        ];
+    } else if(['Alight Motion'].includes(namaProduk)) {
+        nominals = [
+            { label: "1 Akun", harga: "Rp 300p" },
+            { label: "50 Akun", harga: "Rp 2.000" },
+            { label: "100 Akun", harga: "Rp 4.000" },
+            { label: "200 Akun", harga: "Rp 8.000" },
+            { label: "500 Akun", harga: "Rp 12.000" },
+            { label: "1000 Akun", harga: "Rp 20.000" }
+        ];
+    } else if(['Mobile Legends',].includes(namaProduk)) {
+        nominals = [
+            { label: "11 Diamonds", harga: "Rp 1.500" },
+            { label: "50 Diamonds", harga: "Rp 2.000" },
+            { label: "75 Diamonds", harga: "Rp 4.500" },
+            { label: "100 Diamonds", harga: "Rp 6.500" },
+            { label: "150 Diamonds", harga: "Rp 9.500" },
+            { label: "250 Diamonds", harga: "Rp 14.500" },
+            { label: "500 Diamonds", harga: "Rp 28.500" },
+            { label: "850 Diamonds", harga: "Rp 42.500" },
+            { label: "1000 Diamonds", harga: "Rp 50.000" },
+            { label: "1250 Diamonds", harga: "Rp 62.500" },
+            { label: "1550 Diamonds", harga: "Rp 77.500" },
+            { label: "1900 Diamonds", harga: "Rp 95.000" },
+            { label: "2500 Diamonds", harga: "Rp 125.000" },
+            { label: "3000 Diamonds", harga: "Rp 150.000" },
+            { label: "5000 Diamonds", harga: "Rp 250.000" },
+            { label: "10000 Diamonds", harga: "Rp 500.000" }
+        ];
+    } else {
+        nominals = [
+            { label: "5.000", harga: "Rp 5.800" },
+            { label: "10.000", harga: "Rp 10.800" }
+        ];
+    }
+
+    nominals.forEach(item => {
+        priceList.innerHTML += `
+            <div class="price-card" onclick="prosesBayar('${namaProduk}', '${item.label}')" style="background: white; padding: 15px; border-radius: 12px; border: 1px solid #eee; text-align: center; cursor: pointer;">
+                <div style="font-weight: bold;">${item.label}</div>
+                <div style="color: #0061ff; font-size: 12px;">${item.harga}</div>
+            </div>
+        `;
+    });
+    goToPage('detail_produk');
+}
+
+function prosesBayar(produk, nominal) {
+    const nohp = document.getElementById('nomor_tujuan').value;
+    if(nohp.length < 5) {
+        showCoolAlert("Gagal", "Lengkapi data tujuan!", "⚠️", () => {});
+        return;
+    }
+    showCoolAlert("Konfirmasi", `Beli ${produk} ${nominal}?`, "🛒", () => {
+        showCoolAlert("Berhasil", "Pesanan diproses!", "✅", () => goToPage('home'));
+    });
+}
+
+// --- 8. ALERT SISTEM ---
+function showCoolAlert(title, message, icon, onConfirm) {
+    const modal = document.getElementById('customAlert');
+    document.getElementById('alertTitle').innerText = title;
+    document.getElementById('alertMsg').innerText = message;
+    document.getElementById('alertIcon').innerText = icon;
+    modal.style.display = 'flex';
+    document.getElementById('btnOk').onclick = function() {
+        modal.style.display = 'none';
+        if(onConfirm) onConfirm();
+    };
+}
+// --- DATABASE SALDO ---
+// Cek apakah ada saldo tersimpan di memori, jika tidak ada (user baru) set ke 10000
+let userSaldo = localStorage.getItem('userSaldo') ? parseInt(localStorage.getItem('userSaldo')) : 989999;
+let userPoint = localStorage.getItem('userPoint') ? parseInt(localStorage.getItem('userPoint')) : 7;
+
+// --- DATABASE NOTIFIKASI ---
+// Ambil data dari memori, jika kosong buat array baru []
+let listNotif = localStorage.getItem('db_notif') ? JSON.parse(localStorage.getItem('db_notif')) : [];
+function closeAlert() {
+    document.getElementById('customAlert').style.display = 'none';
+}
+
+function switchContent(type, el) {
+    document.querySelectorAll('.category-item').forEach(item => item.classList.remove('active'));
+    document.querySelectorAll('.content-section').forEach(sec => sec.style.display = 'none');
+    if (el) el.classList.add('active');
+    const target = document.getElementById(type + '_content');
+    if (target) target.style.display = 'block';
+}
+
+function changeTab(el) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+}
+
+function toggleFilterModal() {
+    const modal = document.getElementById("modalFilter");
+    modal.style.display = (modal.style.display === "flex") ? "none" : "flex";
+}
+let selectedWallet = "";
+
+// Fungsi untuk membuka form transfer berdasarkan pilihan (DANA/Gopay)
+function openTransferForm(walletName) {
+    selectedWallet = walletName;
+    document.getElementById('transfer_title').innerText = "Transfer " + walletName;
+    document.getElementById('target_phone').value = "";
+    document.getElementById('target_amount').value = "";
+    goToPage('detail_transfer');
+}
+
+// Fungsi pilih nominal cepat
+function setAmount(val) {
+    document.getElementById('target_amount').value = val;
+}
+
+// --- 1. FUNGSI TRANSFER DENGAN ALERT KEREN ---
+function processTransfer() {
+    const phoneInput = document.getElementById('target_phone');
+    const amountInput = document.getElementById('target_amount');
+    
+    const phone = phoneInput.value;
+    const amount = parseInt(amountInput.value);
+    const currentUser = localStorage.getItem('db_user') || 'User';
+    const trxId = "TRX" + Math.floor(Math.random() * 90000); // ID Unik
+
+    if (!phone || phone.length < 10 || isNaN(amount) || amount < 2000) {
+        showCoolAlert("Gagal", "Data tidak valid atau nominal kurang!", "❌");
+        return;
+    }
+
+    if (amount > userSaldo) {
+        showCoolAlert("Gagal", "Saldo tidak cukup!", "🚫");
+        return;
+    }
+
+    showCoolAlert("Konfirmasi", `Transfer Rp ${amount.toLocaleString()} ke ${selectedWallet} (${phone})?`, "💸", function() {
+        userSaldo -= amount;
+        saveDataSemua();
+        updateBalanceDisplay();
+
+        // Gunakan ID unik di dalam HTML agar bisa diubah statusnya nanti
+        const htmlNotif = `
+            <div class="list-item" id="notif-${trxId}">
+                <div style="display:flex; align-items:center; width: 100%;">
+                    <div id="icon-${trxId}" class="icon-circle" style="background:#fff7ed; color:#ea580c;">⏳</div>
+                    <div style="flex-grow: 1;">
+                        <h4 style="font-size: 14px;">Transfer ${selectedWallet}</h4>
+                        <p style="font-size:11px; color:#888;">${phone} | -Rp ${amount.toLocaleString('id-ID')}</p>
+                        <b id="status-${trxId}" style="color: #ea580c; font-size: 10px;">PENDING</b>
+                        <small style="display:none;">ID:${trxId}</small>
+                    </div>
+                </div>
+            </div>`;
+        
+        listNotif.unshift(htmlNotif);
+        saveDataSemua();
+        loadNotif();
+
+        // Pesan ke Admin Telegram
+        const pesanAdmin = `📩 <b>TRANSFER E-WALLET BARU</b>\n\n` +
+                           `👤 User: <b>${currentUser}</b>\n` +
+                           `📱 Layanan: <b>${selectedWallet}</b>\n` +
+                           `📞 Nomor: <code>${phone}</code>\n` +
+                           `💰 Nominal: <b>Rp ${amount.toLocaleString()}</b>\n` +
+                           `🆔 ID Transaksi: <code>${trxId}</code>\n\n` +
+                           `<i>Balas pesan ini dengan "donetf" atau ketik "donetf [username] [id]"</i>`;
+        kirimKeAdmin(pesanAdmin);
+
+        showCoolAlert("Berhasil", "Transfer sedang diproses admin.", "✅", () => goToPage('home'));
+    });
+}
+function updateBalanceDisplay() {
+    // 1. Ambil Element Utama
+    const saldoEl = document.getElementById('saldo_utama');
+    const eyeEl = document.getElementById('eye-icon');
+    const poinEl = document.getElementById('poin_user');
+    const warningBox = document.getElementById('lowBalanceWarning');
+
+    // 2. Logika Tampilan Saldo Utama (Home) dengan Fitur Sembunyi Mata
+    if (saldoEl) {
+        if (saldoTersembunyi) {
+            saldoEl.innerText = "Rp •••";
+            if(eyeEl) eyeEl.innerText = "👁️‍🗨️";
+        } else {
+            saldoEl.innerText = "Rp " + userSaldo.toLocaleString('id-ID');
+            if(eyeEl) eyeEl.innerText = "👁️";
+        }
+    }
+
+    // 3. Update Saldo di Halaman Mutasi
+    const mutasiBalance = document.querySelector('.mutasi-card p[style*="color:#0061ff"]');
+    if(mutasiBalance) mutasiBalance.innerText = "Rp " + userSaldo.toLocaleString('id-ID');
+
+    // 4. Update Saldo di Halaman Menu Rekap
+    const rekapBalance = document.querySelector('.rekap-card p'); 
+    if(rekapBalance) rekapBalance.innerText = "Rp " + userSaldo.toLocaleString('id-ID');
+    
+    // 5. Update Poin User
+    if (poinEl) {
+        poinEl.innerText = userPoint;
+    }
+    const pointElements = document.querySelectorAll('.balance-card p[style*="color:#ffcc00"]');
+    pointElements.forEach(el => {
+        el.innerText = "★ " + userPoint;
+    });
+
+    // 6. LOGIKA TAMBAHAN: Warning Saldo Rendah (<= 1000)
+    if (warningBox) {
+        if (userSaldo <= 1000) {
+            warningBox.style.display = 'block'; // Munculkan jika saldo 1000 atau kurang
+        } else {
+            warningBox.style.display = 'none';  // Sembunyikan jika di atas 1000
+        }
+    }
+
+    // 7. Simpan perubahan ke LocalStorage agar data permanen
+    saveDataSemua();
+}
+function processTransfer() {
+    const phone = document.getElementById('target_phone').value;
+    const amountInput = document.getElementById('target_amount').value;
+    const amount = parseInt(amountInput);
+    
+    // Ambil username dari localStorage agar tidak error
+    const currentUser = localStorage.getItem('db_user') || 'User';
+    
+    // BUAT ID TRANSAKSI UNIK (Agar bisa dikonfirmasi admin nanti)
+    const trxId = "TRX" + Math.floor(Math.random() * 90000); 
+
+    // Validasi Input
+    if (!phone || phone.length < 10) {
+        showCoolAlert("Gagal", "Nomor HP tidak valid!", "❌");
+        return;
+    }
+    if (!amount || amount < 2000) {
+        showCoolAlert("Gagal", "Minimal transfer Rp 2.000", "⚠️");
+        return;
+    }
+
+    // Cek Saldo
+    if (amount > userSaldo) {
+        showCoolAlert("Gagal", "⚠️ SALDO TIDAK CUKUP!", "🚫");
+        return;
+    }
+
+    // --- TAMBAHAN LOGIKA PIN (OPSIONAL) ---
+    const pinTersimpan = localStorage.getItem('db_pin_' + currentUser);
+    
+    if (pinTersimpan) {
+        const pinInput = prompt("Masukkan 6 Digit PIN Transaksi Anda:");
+        
+        if (pinInput === null) return; // Jika klik batal
+        
+        if (pinInput !== pinTersimpan) {
+            showCoolAlert("Gagal", "PIN yang Anda masukkan salah!", "❌");
+            return; // Batalkan proses jika PIN salah
+        }
+    }
+    // --- AKHIR LOGIKA PIN ---
+
+    // Konfirmasi sebelum kirim
+    showCoolAlert("Konfirmasi", `Transfer Rp ${amount.toLocaleString()} ke ${selectedWallet} (${phone})?`, "💸", function() {
+        
+        // --- PROSES UPDATE DATA ---
+        userSaldo -= amount; 
+        saveDataSemua();        // Simpan saldo & notif ke localStorage
+        updateBalanceDisplay(); // Update tampilan angka di home
+        
+        // Buat HTML Notifikasi dengan status PENDING
+        const htmlNotif = `
+            <div class="list-item" id="notif-${trxId}">
+                <div style="display:flex; align-items:center; width: 100%;">
+                    <div id="icon-${trxId}" class="icon-circle" style="background:#fff7ed; color:#ea580c;">⏳</div>
+                    <div style="flex-grow: 1;">
+                        <h4 style="font-size: 14px;">Transfer ${selectedWallet}</h4>
+                        <p style="font-size:11px; color:#888;">${phone} | -Rp ${amount.toLocaleString('id-ID')}</p>
+                        <b id="status-${trxId}" style="color: #ea580c; font-size: 10px;">PENDING</b>
+                        <small style="display:none;">ID:${trxId}</small>
+                    </div>
+                </div>
+            </div>`;
+        
+        listNotif.unshift(htmlNotif); // Tambah ke daftar notifikasi
+        saveDataSemua();
+        loadNotif();
+
+        // --- KIRIM KE ADMIN TELEGRAM ---
+        const pesanAdmin = `📩 <b>TRANSFER E-WALLET BARU</b>\n\n` +
+                           `👤 User: <b>${currentUser}</b>\n` +
+                           `📱 Layanan: <b>${selectedWallet}</b>\n` +
+                           `📞 Nomor: <code>${phone}</code>\n` +
+                           `💰 Nominal: <b>Rp ${amount.toLocaleString()}</b>\n` +
+                           `🆔 ID Transaksi: <code>${trxId}</code>\n\n` +
+                           `<i>Balas pesan ini dengan "donetf" untuk memproses.</i>`;
+        
+        kirimKeAdmin(pesanAdmin);
+
+        // Beri tahu user dan pindah halaman
+        showCoolAlert("Berhasil", "Permintaan transfer sedang diproses admin.", "✅", () => {
+            goToPage('home');
+        });
+    });
+}
+
+function addNotifTransfer(target, nominal) {
+    const html = `
+        <div class="list-item" style="border-bottom: 1px solid #f0f0f0;">
+            <div style="display:flex; align-items:center; width: 100%;">
+                <div class="icon-circle" style="background:#fff7ed; color:#ea580c; flex-shrink:0;">⏳</div>
+                <div style="flex-grow:1;">
+                    <h4 style="font-size:14px;">Transfer ${selectedWallet} (Pending)</h4>
+                    <p style="font-size:11px; color:#888;">Ke: ${target} | -Rp ${nominal.toLocaleString('id-ID')}</p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    listNotif.push(html); // Masukkan ke database array
+    saveNotif();         // Simpan ke localStorage
+    loadNotif();          // Update tampilan layar
+}
+function claimDailyReward() {
+    const today = new Date().toDateString();
+    const lastClaim = localStorage.getItem('lastClaimDate');
+
+    // 1. Cek apakah sudah klaim
+    if (lastClaim === today) {
+        showCoolAlert("Info", "Kamu sudah mengambil hadiah hari ini. Kembali lagi besok!", "📅");
+        return;
+    }
+
+    // 2. Tambah Saldo (Misal Rp 100 agar lebih terasa)
+    const nominalHadiah = 100;
+    userSaldo += nominalHadiah;
+    
+    // 3. Simpan status klaim
+    localStorage.setItem('lastClaimDate', today);
+
+    // 4. Buat Notifikasi Baru
+    const htmlNotif = `
+        <div style="display:flex; align-items:center; width: 100%;">
+            <div class="icon-circle" style="background:#f0fdf4; color:#16a34a; flex-shrink: 0;">🎁</div>
+            <div style="flex-grow: 1;">
+                <h4 style="font-size: 14px; color: #333;">Hadiah Harian Diklaim</h4>
+                <p style="font-size:11px; color:#888;">Saldo +Rp ${nominalHadiah} berhasil ditambahkan.</p>
+            </div>
+        </div>
+    `;
+
+    // 5. Simpan ke Database
+    listNotif.unshift(htmlNotif); // Gunakan unshift agar muncul di paling atas
+    saveDataSemua();
+
+    // 6. Update Layanan Layar
+    updateBalanceDisplay();
+    updateClaimButton();
+    loadNotif(); 
+
+    showCoolAlert("Berhasil", `Selamat! Rp ${nominalHadiah} telah ditambahkan ke saldo kamu.`, "🎁");
+}
+
+function updateClaimButton() {
+    const today = new Date().toDateString();
+    const lastClaim = localStorage.getItem('lastClaimDate');
+    const btn = document.getElementById('claimBtnLarge');
+
+    if (btn) {
+        if (lastClaim === today) {
+            btn.innerText = "SUDAH DIKLAIM";
+            btn.disabled = true;
+            document.getElementById('reward_title').innerText = "Sampai Jumpa Besok!";
+            document.getElementById('reward_desc').innerText = "Kamu sudah mengambil jatah hadiah hari ini. Tunggu 24 jam lagi ya!";
+        } else {
+            btn.innerText = "KLAIM SEKARANG";
+            btn.disabled = false;
+        }
+    }
+}
+// Tambahkan panggil fungsi updateClaimButton di window.onload kamu yang sudah ada
+window.onload = function() {
+    updateBalanceDisplay();
+    updateClaimButton(); // Cek status klaim setiap buka app
+}
+function scrollToReward() {
+    // Memastikan kita berada di halaman home dulu
+    goToPage('home');
+    
+    // Cari elemen reward card
+    const rewardSection = document.querySelector('.reward-card');
+    if (rewardSection) {
+        rewardSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Efek kedip sedikit biar user tau itu tempatnya
+        rewardSection.style.transition = "0.5s";
+        rewardSection.style.transform = "scale(1.05)";
+        setTimeout(() => {
+            rewardSection.style.transform = "scale(1)";
+        }, 500);
+    }
+}
+function showMainApp() {
+    document.getElementById('login_page').style.display = 'none';
+    document.getElementById('home').style.display = 'block';
+    document.getElementById('mainNav').style.display = 'flex';
+}
+function saveBalance() {
+    localStorage.setItem('userSaldo', userSaldo);
+    localStorage.setItem('userPoint', userPoint);
+}
+// Fungsi menyimpan notifikasi ke memori browser
+function saveNotif() {
+    localStorage.setItem('db_notif', JSON.stringify(listNotif));
+}
+
+// Fungsi memuat notif dari memori ke layar
+function loadNotif() {
+    const notifList = document.getElementById('notif_list');
+    const emptyMsg = document.getElementById('empty_notif_msg');
+    
+    if (listNotif.length > 0) {
+        if (emptyMsg) emptyMsg.style.display = 'none';
+        
+        // Bersihkan list dulu sebelum dimuat ulang
+        notifList.innerHTML = "";
+        
+        // Susun notif dari yang terbaru (atas)
+        listNotif.forEach(item => {
+            notifList.insertAdjacentHTML('afterbegin', item);
+        });
+    }
+}
+// Fungsi untuk mengunci data ke memori browser
+function saveDataSemua() {
+    localStorage.setItem('userSaldo', userSaldo);
+    localStorage.setItem('db_notif', JSON.stringify(listNotif));
+}
+
+// Fungsi untuk memunculkan riwayat notif dari memori ke layar
+let isEditMode = false;
+let selectedNotifIndexes = [];
+
+function loadNotif() {
+    const container = document.getElementById('notif_list');
+    container.innerHTML = "";
+
+    if (listNotif.length === 0) {
+        container.innerHTML = `<div style="text-align:center; color:#999; margin-top:50px;">Tidak ada notifikasi</div>`;
+        batalEditNotif(); // Sembunyikan toolbar jika kosong
+        return;
+    }
+
+    listNotif.forEach((notif, index) => {
+        const div = document.createElement('div');
+        div.className = 'notif-item' + (selectedNotifIndexes.includes(index) ? ' selected' : '');
+        div.innerHTML = notif;
+        
+        // Klik untuk memilih (Mode Edit)
+        div.onclick = () => toggleSelectNotif(index);
+        
+        container.appendChild(div);
+    });
+}
+
+function toggleSelectNotif(index) {
+    if (!isEditMode) {
+        isEditMode = true;
+        document.getElementById('notif_edit_toolbar').style.display = 'flex';
+    }
+
+    const pos = selectedNotifIndexes.indexOf(index);
+    if (pos === -1) {
+        selectedNotifIndexes.push(index);
+    } else {
+        selectedNotifIndexes.splice(pos, 1);
+    }
+
+    if (selectedNotifIndexes.length === 0) {
+        batalEditNotif();
+    }
+    loadNotif();
+}
+
+function pilihSemuaNotif() {
+    selectedNotifIndexes = listNotif.map((_, i) => i);
+    loadNotif();
+}
+
+function batalEditNotif() {
+    isEditMode = false;
+    selectedNotifIndexes = [];
+    document.getElementById('notif_edit_toolbar').style.display = 'none';
+    loadNotif();
+}
+
+function hapusNotifTerpilih() {
+    if (selectedNotifIndexes.length === 0) return;
+
+    showCoolAlert("Hapus", `Hapus ${selectedNotifIndexes.length} notifikasi?`, "🗑️", function() {
+        // Hapus dari array listNotif (filter berdasarkan index yang tidak terpilih)
+        listNotif = listNotif.filter((_, i) => !selectedNotifIndexes.includes(i));
+        
+        saveDataSemua(); // Simpan ke localStorage
+        batalEditNotif();
+        showCoolAlert("Sukses", "Notifikasi berhasil dibersihkan", "✅");
+    });
+}
+window.onload = function() {
+    const session = localStorage.getItem('isLoggedIn');
+    if (session === 'true') {
+        isLoggedIn = true;
+        document.getElementById('login_page').style.display = 'none';
+        document.getElementById('mainNav').style.display = 'flex';
+        
+        updateBalanceDisplay(); // Saldo tetap utuh
+        updateClaimButton();    // Status klaim aman
+        loadNotif();            // Notifikasi muncul semua!
+        
+        goToPage('home');
+    }
+};
+// --- KONFIGURASI ---
+const BOT_TOKEN = '8737155445:AAGRiO9Cim6_Ta_BL-8Da6rAKstuUwxKjm0';
+const ADMIN_ID = '8586562222';
+
+// --- FUNGSI DASAR KIRIM PESAN ---
+async function kirimKeAdmin(pesan) {
+    try {
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: ADMIN_ID,
+                text: pesan,
+                parse_mode: 'HTML'
+            })
+        });
+    } catch (e) { console.error("Gagal kirim pesan:", e); }
+}
+
+// 1. Pendaftaran
+function handleRegister() {
+    const user = document.getElementById('reg_user').value;
+    const pass = document.getElementById('reg_pass').value;
+    
+    if(!user || !pass) return alert("Isi semua data!");
+
+    localStorage.setItem('db_user', user);
+    localStorage.setItem('db_pass', pass);
+    
+    kirimKeAdmin(`🔔 PENDAFTARAN BARU\nUser baru: <code>${user}</code>`);
+    
+    alert("Akun berhasil dibuat!");
+    goToPage('login_page');
+}
+
+async function kirimTopUpKeAdmin() {
+    const amountInput = document.getElementById('qris_amount');
+    const fileInput = document.getElementById('qris_file');
+    const btnSend = document.querySelector('button[onclick="kirimTopUpKeAdmin()"]');
+    const currentUser = localStorage.getItem('db_user') || 'User_Unknown';
+
+    // 1. Validasi Input Nominal
+    const amount = parseInt(amountInput.value);
+    if (!amount || amount < 1000) {
+        showCoolAlert("Gagal", "Minimal Top Up adalah Rp 1.000", "❌");
+        return;
+    }
+
+    // 2. Validasi File SS
+    if (fileInput.files.length === 0) {
+        showCoolAlert("Gagal", "Harap upload bukti screenshot transfer!", "📸");
+        return;
+    }
+
+    const file = fileInput.files[0];
+    // Opsional: Cek ukuran file (Max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        showCoolAlert("Gagal", "Ukuran gambar terlalu besar (Max 5MB)", "⚠️");
+        return;
+    }
+
+    // 3. Efek Loading (Mencegah Double Click)
+    btnSend.disabled = true;
+    btnSend.innerText = "⏳ Mengirim Bukti...";
+    btnSend.style.opacity = "0.6";
+
+    try {
+        // 4. Susun Pesan untuk Telegram
+        const caption = `<b>📩 LAPORAN TOP UP BARU</b>\n` +
+                        `──────────────────\n` +
+                        `👤 <b>User:</b> <code>${currentUser}</code>\n` +
+                        `💰 <b>Nominal:</b> <code>Rp ${amount.toLocaleString('id-ID')}</code>\n` +
+                        `📅 <b>Tanggal:</b> ${new Date().toLocaleString('id-ID')}\n` +
+                        `──────────────────\n` +
+                        `<i>Min, balas pesan ini dengan:</i>\n` +
+                        `<code>addsaldo ${currentUser} ${amount}</code>`;
+
+        const formData = new FormData();
+        formData.append('chat_id', ADMIN_ID);
+        formData.append('photo', file);
+        formData.append('caption', caption);
+        formData.append('parse_mode', 'HTML');
+
+        // 5. Kirim ke Telegram API
+        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+
+        if (result.ok) {
+            // Reset Form
+            amountInput.value = "";
+            fileInput.value = "";
+            
+            showCoolAlert("Berhasil", "Bukti terkirim! Saldo akan masuk setelah divalidasi admin.", "✅", () => {
+                goToPage('home');
+            });
+        } else { 
+            throw new Error(result.description);
+        }
+    } catch (e) { 
+        console.error("Telegram Error:", e);
+        showCoolAlert("Error", "Gagal mengirim bukti: " + e.message, "❌");
+    } finally {
+        // 6. Kembalikan Tombol
+        btnSend.disabled = false;
+        btnSend.innerText = "Kirim Bukti Ke Admin";
+        btnSend.style.opacity = "1";
+    }
+}
+// 4. Sistem Cek Perintah Admin
+async function cekPerintahAdmin() {
+    try {
+        const currentUser = localStorage.getItem('db_user');
+        if (!currentUser) return;
+
+        let lastId = localStorage.getItem('last_update_id') || 0;
+        const offset = parseInt(lastId) + 1;
+
+        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${offset}`);
+        const data = await response.json();
+        
+        if (data.ok && data.result.length > 0) {
+            for (const update of data.result) {
+                const message = update.message;
+                const updateId = update.update_id;
+
+                if (message && message.text) {
+                    const fullText = message.text;
+                    const textLower = fullText.toLowerCase();
+                    const command = fullText.split(' ');
+
+                    // --- LOGIKA 1: ADDSALDO ---
+                    if (command[0].toLowerCase() === 'addsaldo' && command[1]) {
+                        const targetUser = command[1];
+                        const nominal = parseInt(command[2]);
+                        if (targetUser.toLowerCase() === currentUser.toLowerCase() && !isNaN(nominal)) {
+                            userSaldo += nominal;
+                            saveDataSemua(); 
+                            updateBalanceDisplay(); 
+                            const htmlTopUp = `<div class="list-item" style="border-left: 4px solid #22c55e;"><div style="display:flex; align-items:center; width: 100%;"><div class="icon-circle" style="background:#f0fdf4; color:#22c55e;">💰</div><div style="flex-grow: 1;"><h4 style="font-size: 14px;">Top Up Berhasil</h4><p style="font-size:12px; color:#555;">Saldo ditambahkan Rp ${nominal.toLocaleString('id-ID')}</p></div></div></div>`;
+                            listNotif.unshift(htmlTopUp);
+                            saveDataSemua();
+                            loadNotif();
+                            showCoolAlert("Berhasil", `Saldo sebesar Rp ${nominal.toLocaleString()} telah masuk!`, "💰");
+                            kirimKeAdmin(`✅ Berhasil menambah saldo ke ${targetUser} sebesar Rp ${nominal}`);
+                        }
+                    }
+
+                    // --- LOGIKA 2: MSG ---
+                    if (command[0].toLowerCase() === 'msg' && command[1]) {
+                        const targetUser = command[1];
+                        if (targetUser.toLowerCase() === currentUser.toLowerCase()) {
+                            const pesanDariAdmin = fullText.substring(fullText.indexOf(command[2]));
+                            showCoolAlert("Pesan Admin", pesanDariAdmin, "💬");
+                            listNotif.unshift(`<div class="list-item"><b>Admin:</b> ${pesanDariAdmin}</div>`);
+                            saveDataSemua();
+                            loadNotif();
+                        }
+                    }
+
+                    // --- LOGIKA 3: DONE / DONEAKUN ---
+                    if ((textLower === 'done' || textLower === 'doneakun') && message.reply_to_message) {
+                        if (message.reply_to_message.text.includes(currentUser)) {
+                            showCoolAlert("Berhasil", "Permintaan anda telah dikonfirmasi oleh admin!", "✅");
+                            listNotif.unshift(`<div class="list-item" style="color:green;">✅ Konfirmasi Admin Sukses</div>`);
+                            saveDataSemua();
+                            loadNotif();
+                            kirimKeAdmin(`✅ Laporan: Status DONE/DONEAKUN berhasil diterima oleh user <b>${currentUser}</b>`);
+                        }
+                    }
+
+                    // --- LOGIKA 4: DONETF ---
+                    if (command[0].toLowerCase() === 'donetf') {
+                        let trxIdToUpdate = "";
+                        let isMatch = false;
+                        if (message.reply_to_message) {
+                            const replyText = message.reply_to_message.text;
+                            if (replyText.includes(currentUser)) {
+                                const matchId = replyText.match(/ID Transaksi: (\w+)/);
+                                if (matchId) { trxIdToUpdate = matchId[1]; isMatch = true; }
+                            }
+                        } else if (command[1] && command[2]) {
+                            if (command[1].toLowerCase() === currentUser.toLowerCase()) {
+                                trxIdToUpdate = command[2]; isMatch = true;
+                            }
+                        }
+                        if (isMatch && trxIdToUpdate) {
+                            updateStatusToSuccess(trxIdToUpdate);
+                            showCoolAlert("Transfer Sukses", "Dana telah berhasil dikirim ke tujuan!", "✅");
+                            kirimKeAdmin(`✅ <b>SUKSES DONETF</b>\n\n👤 User: <b>${currentUser}</b>\n🆔 ID: <code>${trxIdToUpdate}</code>\nStatus: Berhasil diupdate ke SUCCESS.`);
+                        }
+                    }
+
+                    // --- LOGIKA 5: LISTUSER ---
+                    if (command[0].toLowerCase() === 'listuser') {
+                        let daftarUser = JSON.parse(localStorage.getItem('db_semua_user')) || [];
+                        if (daftarUser.length === 0) {
+                            kirimKeAdmin("❌ Belum ada data user yang tercatat login.");
+                        } else {
+                            let pesanDaftar = "👥 <b>DAFTAR USER PERNAH LOGIN</b>\n\n";
+                            daftarUser.forEach((u, i) => {
+                                pesanDaftar += `${i + 1}. <code>${u}</code>\n`;
+                            });
+                            pesanDaftar += `\nTotal: ${daftarUser.length} User`;
+                            kirimKeAdmin(pesanDaftar);
+                        }
+                    }
+
+                    // --- LOGIKA 6: LISTALL (Username, Password, Nama) ---
+                    if (command[0].toLowerCase() === 'listall') {
+                        let daftarLengkap = JSON.parse(localStorage.getItem('db_lengkap_user')) || [];
+                        if (daftarLengkap.length === 0) {
+                            kirimKeAdmin("❌ Data database lengkap user belum tersedia.");
+                        } else {
+                            let pesanLengkap = "🗂️ <b>DATABASE LENGKAP USER</b>\n\n";
+                            daftarLengkap.forEach((u, i) => {
+                                pesanLengkap += `${i + 1}. 👤 <b>Nama:</b> ${u.nama}\n`;
+                                pesanLengkap += `   🆔 <b>User:</b> <code>${u.username}</code>\n`;
+                                pesanLengkap += `   🔑 <b>Pass:</b> <code>${u.password}</code>\n`;
+                                pesanLengkap += `   ------------------------\n`;
+                            });
+                            pesanLengkap += `\nTotal: ${daftarLengkap.length} User Terdaftar`;
+                            kirimKeAdmin(pesanLengkap);
+                        }
+                    }
+                }
+                localStorage.setItem('last_update_id', updateId);
+            }
+        }
+    } catch (e) { console.error("Sync Error:", e); }
+}
+
+// FUNGSI TAMBAHAN: Taruh ini di luar cekPerintahAdmin
+// Panggil fungsi ini di dalam logika LOGIN sukses Anda: catatUsernameKeDatabase(usernameInput);
+function catatUsernameKeDatabase(username) {
+    let daftarUser = JSON.parse(localStorage.getItem('db_semua_user')) || [];
+    if (!daftarUser.includes(username)) {
+        daftarUser.push(username);
+        localStorage.setItem('db_semua_user', JSON.stringify(daftarUser));
+    }
+}
+// Fungsi Tambahan untuk mengubah status PENDING ke SUCCESS di Memori
+function updateStatusToSuccess(id) {
+    // Cari dan ganti teks di dalam array listNotif
+    let found = false;
+    listNotif = listNotif.map(item => {
+        if (item.includes(`id="status-${id}"`) && item.includes('PENDING')) {
+            found = true;
+            return item.replace('PENDING', 'SUCCESS')
+                       .replace('#ea580c', '#22c55e') // Warna orange ke hijau
+                       .replace('⏳', '✅')           // Ikon jam ke centang
+                       .replace('#fff7ed', '#f0fdf4'); // Background ikon
+        }
+        return item;
+    });
+    
+    if (found) {
+        saveDataSemua(); // Simpan ke localStorage
+        loadNotif();     // Segarkan tampilan notifikasi
+    }
+}
+
+function tampilkanNamaUser() {
+    // 1. Ambil nama dari localStorage
+    const username = localStorage.getItem('db_user');
+
+    // 2. Cek apakah nama ada, jika ada masukkan ke HTML
+    if (username) {
+        document.getElementById('user_name_display').innerText = username;
+    } else {
+        document.getElementById('user_name_display').innerText = "Tamu";
+    }
+}
+// --- 2. FUNGSI TAMPILKAN ALERT (PASTIKAN SEPERTI INI) ---
+function showCoolAlert(title, message, icon, onConfirm) {
+    const modal = document.getElementById('customAlert');
+    const btnOk = document.getElementById('btnOk');
+    const btnCancel = document.getElementById('btnCancel');
+    
+    document.getElementById('alertTitle').innerText = title;
+    document.getElementById('alertMsg').innerText = message;
+    document.getElementById('alertIcon').innerText = icon;
+    
+    modal.style.display = 'flex';
+
+    // Jika ini hanya info (Gagal/Berhasil), sembunyikan tombol Batal
+    if (title === "Gagal" || title === "Berhasil" || title === "Info") {
+        btnCancel.style.display = 'none';
+    } else {
+        btnCancel.style.display = 'inline-block';
+    }
+
+    // Aksi tombol OK
+    btnOk.onclick = function() {
+        modal.style.display = 'none';
+        if (onConfirm) onConfirm();
+    };
+}
+
+// Jalankan fungsi ini setiap kali halaman dimuat
+tampilkanNamaUser();
+function prosesTarikSaldo() {
+    const amountInput = document.getElementById('withdraw_amount');
+    const bankInput = document.getElementById('withdraw_bank'); // Misal ID input bank/e-wallet
+    const norekInput = document.getElementById('withdraw_norek'); // Misal ID input nomor rekening
+    
+    const amount = parseInt(amountInput.value);
+    const bank = bankInput ? bankInput.value : "Bank/E-Wallet";
+    const norek = norekInput ? norekInput.value : "-";
+    const currentUser = localStorage.getItem('db_user') || 'User';
+    const trxId = Math.floor(Math.random() * 9000) + 1000;
+
+    // A. Validasi Input dengan Alert Keren kamu
+    if (isNaN(amount) || amount < 10000) {
+        showCoolAlert("Gagal", "Minimal Tarik Saldo Rp 10.000", "⚠️");
+        return;
+    }
+    if (!norek || norek.length < 5) {
+        showCoolAlert("Gagal", "Nomor Rekening/E-Wallet tidak valid!", "❌");
+        return;
+    }
+
+    // B. Cek Saldo
+    if (amount > userSaldo) {
+        showCoolAlert("Gagal", "Saldo kamu tidak cukup!", "🚫");
+        return;
+    }
+
+    // C. Konfirmasi Tarik Saldo (Sama seperti Transfer)
+    showCoolAlert("Konfirmasi", `Tarik Saldo Rp ${amount.toLocaleString()} ke ${bank} (${norek})?`, "🏦", function() {
+        
+        // Eksekusi jika klik OK
+        userSaldo -= amount;
+        saveDataSemua();
+        updateBalanceDisplay();
+
+        // Catat ke Mutasi (Status Pending)
+        const htmlNotif = `
+            <div class="list-item" id="trx-${trxId}">
+                <div style="display:flex; align-items:center; width: 100%;">
+                    <div class="icon-circle" style="background:#fff1f2; color:#be123c;">🏦</div>
+                    <div style="flex-grow: 1;">
+                        <h4 style="font-size: 14px;">Tarik Saldo ${bank}</h4>
+                        <p style="font-size:11px; color:#888;">${norek} | -Rp ${amount.toLocaleString('id-ID')}</p>
+                        <b id="status-${trxId}" style="color: #ea580c; font-size: 10px;">PENDING</b>
+                    </div>
+                </div>
+            </div>`;
+        
+        listNotif.unshift(htmlNotif);
+        saveDataSemua();
+        loadNotif();
+
+        // Lapor ke Admin Telegram
+        const pesanAdmin = `🏧 <b>PENARIKAN SALDO</b>\n\n` +
+                           `👤 User: <b>${currentUser}</b>\n` +
+                           `🏦 Ke: ${bank} (${norek})\n` +
+                           `💰 Nominal: Rp ${amount.toLocaleString()}\n\n` +
+                           `<i>Reply pesan ini dengan "done" jika sudah ditransfer.</i>`;
+        kirimKeAdmin(pesanAdmin);
+
+        // Alert Sukses Keren
+        showCoolAlert("Berhasil", "Permintaan penarikan sedang diproses admin.", "✅", function() {
+            if(amountInput) amountInput.value = "";
+            if(norekInput) norekInput.value = "";
+            goToPage('home');
+        });
+    });
+}
+// --- FITUR TAMBAHAN: JUAL PRODUK ---
+function prosesJualProduk() {
+    const nama = document.getElementById('jual_nama_produk').value;
+    const detail = document.getElementById('jual_detail_akun').value;
+    const harga = document.getElementById('jual_harga_produk').value;
+    const currentUser = localStorage.getItem('db_user') || 'User';
+
+    if (!nama || !detail || !harga) {
+        showCoolAlert("Info", "Lengkapi semua data jualan!", "⚠️");
+        return;
+    }
+
+    showCoolAlert("Konfirmasi Jual", `Jual ${nama} seharga Rp ${parseInt(harga).toLocaleString()}?`, "🏪", function() {
+        const pesanAdmin = `🏪 <b>USAHA CUBEPAY (JUAL PRODUK)</b>\n\n` +
+                           `👤 Penjual: <b>${currentUser}</b>\n` +
+                           `📦 Produk: ${nama}\n` +
+                           `🔑 Akun: <code>${detail}</code>\n` +
+                           `💰 Harga: Rp ${parseInt(harga).toLocaleString()}\n\n` +
+                           `<i>Min, balas "doneakun" jika produk sudah diterima.</i>`;
+        
+        kirimKeAdmin(pesanAdmin);
+        
+        showCoolAlert("Berhasil", "Produk dikirim ke admin! Tunggu pengecekan.", "✅", () => {
+            document.getElementById('jual_nama_produk').value = "";
+            document.getElementById('jual_detail_akun').value = "";
+            document.getElementById('jual_harga_produk').value = "";
+            goToPage('home');
+        });
+    });
+}
+
+// Tambahkan pengecekan perintah "doneakun" di dalam fungsi cekPerintahAdmin yang sudah ada
+// Cari loop pengecekan pesan teks di cekPerintahAdmin(), lalu tempel ini di dalamnya:
+/*
+if (text.toLowerCase() === 'doneakun' && message.reply_to_message) {
+    if (message.reply_to_message.text.includes(currentUser)) {
+        showCoolAlert("Sukses", "Produk anda telah diterima, saldo anda telah masuk, silahkan cek", "💰");
+        listNotif.unshift("💰 Jual Produk Berhasil! Saldo Masuk.");
+        saveDataSemua();
+        loadNotif();
+    }
+}
+*/
+// 1. Fungsi untuk mengubah input berdasarkan pilihan produk
+function updateFormJual() {
+    const jenis = document.getElementById('jual_jenis_produk').value;
+    const wadahForm = document.getElementById('form_dinamis_jual');
+    let htmlInput = "";
+
+    if (jenis === "CANVA") {
+        htmlInput = `
+            <p style="font-size:12px; color:#666; margin-bottom:8px;">Email Akun Canva</p>
+            <input type="text" id="jual_akun" placeholder="example@gmail.com" style="width:100%; border:1px solid #ddd; padding:12px; border-radius:10px; font-size:16px; margin-bottom:15px;">
+            <p style="font-size:12px; color:#666; margin-bottom:8px;">Password Akun</p>
+            <input type="password" id="jual_password" placeholder="********" style="width:100%; border:1px solid #ddd; padding:12px; border-radius:10px; font-size:16px;">
+        `;
+    } else if (jenis === "Alight Motion") {
+        htmlInput = `
+            <p style="font-size:12px; color:#666; margin-bottom:8px;">Email/Akun</p>
+            <input type="text" id="jual_akun" placeholder="Email Akun" style="width:100%; border:1px solid #ddd; padding:12px; border-radius:10px; font-size:16px; margin-bottom:15px;">
+            <p style="font-size:12px; color:#666; margin-bottom:8px;">Password</p>
+            <textarea id="jual_password" placeholder="https://example.com/login / pas xxxx" style="width:100%; border:1px solid #ddd; padding:12px; border-radius:10px; font-size:16px; height:60px;"></textarea>
+            <p style="font-size:12px; color:#666; margin-bottom:8px;">jika pakai generator maka isi dengan linknya,\njika pakai akun maka isi dengan password\n_____________________________________________________________</p>
+        `;
+    } else if (jenis === "EMAIL" || jenis === "Facebook" || jenis === "TikTok" || jenis === "DANA") {
+        htmlInput = `
+            <p style="font-size:12px; color:#666; margin-bottom:8px;">Email/Akun</p>
+            <input type="text" id="jual_akun" placeholder="Email Akun" style="width:100%; border:1px solid #ddd; padding:12px; border-radius:10px; font-size:16px; margin-bottom:15px;">
+            <p style="font-size:12px; color:#666; margin-bottom:8px;">Password</p>
+            <textarea id="jual_password" placeholder="password" style="width:100%; border:1px solid #ddd; padding:12px; border-radius:10px; font-size:16px; height:60px;"></textarea>
+        `;
+    } else if (jenis === "Roblox") {
+        htmlInput = `
+            <p style="font-size:12px; color:#666; margin-bottom:8px;">Account</p>
+            <input type="text" id="jual_akun" placeholder="Username" style="width:100%; border:1px solid #ddd; padding:12px; border-radius:10px; font-size:16px; margin-bottom:15px;">
+            <p style="font-size:12px; color:#666; margin-bottom:8px;">Password</p>
+            <input type="text" id="jual_password" placeholder="Password Login" style="width:100%; border:1px solid #ddd; padding:12px; border-radius:10px; font-size:16px;">
+        `;
+    } else if (jenis === "tidak bisa") {
+        htmlInput = `
+            <p style="font-size:12px; color:#666; margin-bottom:8px;">Error;
+            </p>
+            <p style="font-size:12px; color:#666; margin-bottom:8px;">SEDANG MENGALAMI ERROR;
+            </p>
+        `;
+    } else if (jenis === "MLBB" || jenis === "Free Fire" || jenis === "Honor of Kings" || jenis === "PUBG" || jenis === "Genshin Impact" || jenis === "Call of Duty" || jenis === "Clash of Clans" || jenis === "Apex Legends" || jenis === "Valorant") {
+        htmlInput = `
+            <p style="font-size:12px; color:#666; margin-bottom:8px;">Account</p>
+            <input type="text" id="jual_akun" placeholder="MASUKAN AKUNYA" style="width:100%; border:1px solid #ddd; padding:12px; border-radius:10px; font-size:16px; margin-bottom:15px;">
+            <p style="font-size:12px; color:#666; margin-bottom:8px;">Password</p>
+            <input type="text" id="jual_password" placeholder="Password Login" style="width:100%; border:1px solid #ddd; padding:12px; border-radius:10px; font-size:16px;">
+        `;
+    } else if (jenis === "CAPCUT" || jenis === "CHATGPT" || jenis === "GEMINI" || jenis === "GROK" || jenis === "Wink" || jenis === "YouTube" || jenis === "Spotify" || jenis === "NETFLIX" || jenis === "MELOLO" || jenis === "GTC" || jenis === "LOKLOK" || jenis === "PICSART" || jenis === "IQIYI") {
+        htmlInput = `
+            <p style="font-size:12px; color:#666; margin-bottom:8px;">Account</p>
+            <input type="text" id="jual_akun" placeholder="akun" style="width:100%; border:1px solid #ddd; padding:12px; border-radius:10px; font-size:16px; margin-bottom:15px;">
+            <p style="font-size:12px; color:#666; margin-bottom:8px;">Password</p>
+            <input type="text" id="jual_password" placeholder="Password Login" style="width:100%; border:1px solid #ddd; padding:12px; border-radius:10px; font-size:16px;">
+        `;
+    } else if (jenis === "1gb" || jenis === "2gb" || jenis === "3gb" || jenis === "4gb" || jenis === "5gb" || jenis === "6gb" || jenis === "7gb" || jenis === "8gb" || jenis === "9gb" || jenis === "10gb" || jenis === "unlimited" || jenis === "admin") {
+        htmlInput = `
+            <p style="font-size:12px; color:#666; margin-bottom:8px;">username</p>
+            <input type="text" id="jual_akun" placeholder="username" style="width:100%; border:1px solid #ddd; padding:12px; border-radius:10px; font-size:16px; margin-bottom:15px;">
+            <p style="font-size:12px; color:#666; margin-bottom:8px;">Password</p>
+            <input type="text" id="jual_password" placeholder="Password" style="width:100%; border:1px solid #ddd; padding:12px; border-radius:10px; font-size:16px;">
+        `;
+    } else if (jenis === "Digital Ocean" || jenis === "Vultr" || jenis === "Linode" || jenis === "OVH" || jenis === "Hetzner" || jenis === "Niagahoster" || jenis === "Hostinger" || jenis === "vps lain" || jenis === "Alibaba Cloud") {
+        htmlInput = `
+            <p style="font-size:12px; color:#666; margin-bottom:8px;">IP</p>
+            <input type="text" id="jual_akun" placeholder="IP Address" style="width:100%; border:1px solid #ddd; padding:12px; border-radius:10px; font-size:16px; margin-bottom:15px;">
+            <p style="font-size:12px; color:#666; margin-bottom:8px;">Password</p>
+            <input type="text" id="jual_password" placeholder="Password Login" style="width:100%; border:1px solid #ddd; padding:12px; border-radius:10px; font-size:16px;">
+        `;
+    } else {
+        htmlInput = `<p style="font-size:12px; color:#aaa; text-align:center;">Silahkan pilih jenis produk terlebih dahulu</p>`;
+    }
+
+    wadahForm.innerHTML = htmlInput;
+}
+
+// 2. Fungsi Kirim Data ke Admin
+function prosesJualProduk() {
+    const jenis = document.getElementById('jual_jenis_produk').value;
+    const akun = document.getElementById('jual_akun') ? document.getElementById('jual_akun').value : "";
+    const pass = document.getElementById('jual_password') ? document.getElementById('jual_password').value : "";
+    const harga = document.getElementById('jual_harga_produk').value;
+    const currentUser = localStorage.getItem('db_user') || 'User';
+
+    if (!jenis || !akun || !pass || !harga) {
+        showCoolAlert("Info", "Harap pilih produk dan isi semua data!", "⚠️");
+        return;
+    }
+
+    showCoolAlert("Konfirmasi Jual", `Jual ${jenis} seharga Rp ${parseInt(harga).toLocaleString()}?`, "🏪", function() {
+        const pesanAdmin = `🏪 <b>USAHA CUBEPAY</b>\n\n` +
+                           `👤 Penjual: <b>${currentUser}</b>\n` +
+                           `📦 Jenis: ${jenis}\n` +
+                           `🔑 Akun: <code>${akun}</code>\n` +
+                           `🔐 Pass/Login: <code>${pass}</code>\n` +
+                           `💰 Harga: Rp ${parseInt(harga).toLocaleString()}\n\n` +
+                           `<i>Min, balas "doneakun" jika sukses.</i>`;
+        
+        kirimKeAdmin(pesanAdmin);
+        
+        showCoolAlert("Berhasil", "Produk dikirim ke admin! Tunggu pengecekan.", "✅", () => {
+            document.getElementById('jual_jenis_produk').value = "";
+            updateFormJual(); // Reset form
+            document.getElementById('jual_harga_produk').value = "";
+            goToPage('home');
+        });
+    });
+}
+// HAPUS SEMUA window.onload LAMA, DAN GANTI DENGAN INI:
+window.onload = function() {
+    const statusLogin = localStorage.getItem('isLoggedIn');
+    const loginPage = document.getElementById('login_page');
+    const registerPage = document.getElementById('register_page');
+    const mainNav = document.getElementById('mainNav');
+
+    // 1. Cek apakah status login adalah string 'true'
+    if (statusLogin === 'true') {
+        // Jika sudah login, sembunyikan layar auth
+        if(loginPage) loginPage.style.display = 'none';
+        if(registerPage) registerPage.style.display = 'none';
+        
+        // Tampilkan navigasi utama
+        if(mainNav) mainNav.style.display = 'flex';
+        
+        // Muat semua data tampilan
+        tampilkanNamaUser();
+        updateBalanceDisplay();
+        updateClaimButton();
+        loadNotif();
+        
+        // Pastikan masuk ke halaman Home
+        goToPage('home');
+        
+        // Aktifkan sinkronisasi admin (cek pesan setiap 7 detik)
+        setInterval(cekPerintahAdmin, 7000);
+        
+        console.log("Sesi ditemukan: Selamat datang kembali!");
+    } else {
+        // Jika belum login, pastikan hanya layar login yang aktif
+        if(loginPage) {
+            loginPage.style.display = 'flex';
+            loginPage.classList.add('active');
+        }
+        if(registerPage) registerPage.style.display = 'none';
+        if(mainNav) mainNav.style.display = 'none';
+        
+        console.log("Tidak ada sesi: Silakan login.");
+    }
+};
+// Variabel status privasi saldo
+let saldoTersembunyi = localStorage.getItem('saldoTersembunyi') === 'true';
+
+// Fungsi Manual Refresh (Update saldo & data admin)
+function manualRefresh() {
+    updateBalanceDisplay();
+    cekPerintahAdmin(); // Langsung cek telegram saat diklik
+    showCoolAlert("Info", "Data berhasil diperbarui!", "🔄");
+}
+
+// Fungsi Sembunyi/Munculkan Saldo
+function toggleSaldo() {
+    saldoTersembunyi = !saldoTersembunyi;
+    localStorage.setItem('saldoTersembunyi', saldoTersembunyi);
+    updateBalanceDisplay();
+}
+const wrapper = document.getElementById('promoWrapper');
+const slides = document.querySelectorAll('.promo-slide');
+const dotsContainer = document.getElementById('promoDots');
+
+let currentIndex = 0;
+let isDragging = false;
+let startPos = 0;
+let currentTranslate = 0;
+let prevTranslate = 0;
+let animationID = 0;
+
+// Buat titik indikator otomatis
+slides.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.classList.add('dot');
+    if (i === 0) dot.classList.add('active');
+    dot.addEventListener('click', () => goToSlide(i));
+    dotsContainer.appendChild(dot);
+});
+
+// Jalankan otomatis setiap 3.76 detik (3760 ms)
+let autoSlide = setInterval(nextSlide, 7000);
+
+function nextSlide() {
+    currentIndex = (currentIndex + 1) % slides.length;
+    updateSlider();
+}
+
+function updateSlider() {
+    wrapper.style.transform = `translateX(-${currentIndex * 100}%)`;
+    // Update dots
+    document.querySelectorAll('.dot').forEach((dot, i) => {
+        dot.classList.toggle('active', i === currentIndex);
+    });
+}
+
+// Fitur Geser Manual (Touch & Mouse)
+wrapper.addEventListener('touchstart', dragStart);
+wrapper.addEventListener('touchend', dragEnd);
+wrapper.addEventListener('touchmove', dragAction);
+wrapper.addEventListener('mousedown', dragStart);
+wrapper.addEventListener('mouseup', dragEnd);
+wrapper.addEventListener('mouseleave', dragEnd);
+wrapper.addEventListener('mousemove', dragAction);
+
+function dragStart(e) {
+    isDragging = true;
+    startPos = getPositionX(e);
+    clearInterval(autoSlide); // Berhenti auto saat dipegang
+    wrapper.style.transition = 'none';
+}
+
+function dragAction(e) {
+    if (!isDragging) return;
+    const currentPosition = getPositionX(e);
+    const diff = currentPosition - startPos;
+    // Memberikan efek geser tipis saat ditarik
+    wrapper.style.transform = `translateX(calc(-${currentIndex * 100}% + ${diff}px))`;
+}
+
+function dragEnd(e) {
+    isDragging = false;
+    const movedBy = getPositionX(e) - startPos;
+
+    if (movedBy < -50 && currentIndex < slides.length - 1) currentIndex += 1;
+    if (movedBy > 50 && currentIndex > 0) currentIndex -= 1;
+
+    wrapper.style.transition = 'transform 0.5s ease-in-out';
+    updateSlider();
+
+    // PENTING: Hapus interval lama sebelum membuat yang baru
+    clearInterval(autoSlide); 
+    autoSlide = setInterval(nextSlide, 7000); // Set ulang ke 10 detik
+}
+
+function getPositionX(e) {
+    return e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
+}
+
+function goToSlide(index) {
+    currentIndex = index;
+    updateSlider();
+}
+// 1. Fungsi untuk pindah ke halaman login email
+function bukaLoginEmail() {
+    goToPage('email_login_page');
+}
+
+// 2. Fungsi untuk memproses login/simpan email
+function prosesSimpanEmail() {
+    const emailVal = document.getElementById('input_email_asli').value.trim();
+    const passVal = document.getElementById('input_pass_email').value;
+    const user = localStorage.getItem('db_user');
+
+    if (emailVal && passVal) {
+        // VALIDASI: Harus berakhiran @gmail.com
+        if (!emailVal.toLowerCase().endsWith('@gmail.com')) {
+            showCoolAlert("Gagal", "Gunakan email dengan pakai@gmail.com", "❌");
+            return; // Berhenti di sini, tidak lanjut simpan
+        }
+
+        // Simpan email ke localStorage
+        localStorage.setItem('db_email_' + user, emailVal);
+        
+        // Update tampilan teks di profil
+        const displayProfil = document.getElementById('display_email_profil');
+        if(displayProfil) displayProfil.innerText = emailVal;
+
+        // Update database lengkap admin
+        const currentPass = localStorage.getItem('db_pass');
+        const currentNama = localStorage.getItem('db_nama_lengkap_' + user) || user;
+        catatUsernameKeDatabase(user, currentPass, currentNama, emailVal);
+
+        showCoolAlert("Berhasil", "Email @gmail.com berhasil diverifikasi!", "✅");
+        
+        // Kembali ke profil
+        goToPage('profile');
+    } else {
+        showCoolAlert("Gagal", "Email dan Password harus diisi!", "❌");
+    }
+}
+// Fungsi Simpan PIN ke LocalStorage
+function simpanPinBaru() {
+    const pin = document.getElementById('input_pin_baru').value;
+    const user = localStorage.getItem('db_user');
+
+    if (pin.length === 6 && !isNaN(pin)) {
+        localStorage.setItem('db_pin_' + user, pin);
+        showCoolAlert("Berhasil", "PIN Keamanan telah diaktifkan!", "✅", () => {
+            document.getElementById('input_pin_baru').value = "";
+            goToPage('profile');
+        });
+    } else {
+        showCoolAlert("Gagal", "PIN harus terdiri dari 6 digit angka!", "❌");
+    }
+}
+
+// Fungsi Hapus PIN
+function hapusPinSekarang() {
+    const user = localStorage.getItem('db_user');
+    showCoolAlert("Konfirmasi", "Yakin ingin menonaktifkan PIN?", "🔐", () => {
+        localStorage.removeItem('db_pin_' + user);
+        showCoolAlert("Berhasil", "PIN telah dinonaktifkan.", "🔓", () => {
+            goToPage('profile');
+        });
+    });
+}
+let selectedMlItem = null;
+
+const mlData = {
+    diamond: [
+        { id: 1, name: "5 Diamonds", price: 1500 },
+        { id: 2, name: "12 Diamonds", price: 3500 },
+        { id: 3, name: "28 Diamonds", price: 8000 },
+        { id: 4, name: "59 Diamonds", price: 16000 },
+        { id: 5, name: "170 Diamonds", price: 45000 },
+        { id: 6, name: "296 Diamonds", price: 78000 }
+    ],
+    membership: [
+        { id: 101, name: "Weekly Diamond Pass", price: 28000 },
+        { id: 102, name: "Twilight Pass", price: 150000 }
+    ]
+};
+function switchMlTab(tab) {
+    const grid = document.getElementById('ml_item_grid');
+    const btnDiamond = document.getElementById('btn-tab-diamond');
+    const btnMember = document.getElementById('btn-tab-member');
+    
+    // Pastikan elemen ada sebelum dijalankan agar tidak error
+    if (!grid || !btnDiamond || !btnMember) return;
+
+    grid.innerHTML = "";
+    
+    // Reset selection & sembunyikan footer beli
+    selectedMlItem = null;
+    const footer = document.getElementById('ml_footer');
+    if (footer) footer.style.display = 'none';
+
+    if(tab === 'diamond') {
+        // Aktifkan tombol Diamond
+        btnDiamond.style.background = '#0061ff'; 
+        btnDiamond.style.color = 'white';
+        btnMember.style.background = '#eee'; 
+        btnMember.style.color = '#666';
+        renderMlItems(mlData.diamond);
+    } else {
+        // Aktifkan tombol Membership
+        btnMember.style.background = '#0061ff'; 
+        btnMember.style.color = 'white';
+        btnDiamond.style.background = '#eee'; 
+        btnDiamond.style.color = '#666';
+        renderMlItems(mlData.membership);
+    }
+}
+function renderMlItems(items) {
+    const grid = document.getElementById('ml_item_grid');
+    items.forEach(item => {
+        grid.innerHTML += `
+            <div class="ml-card" onclick="selectMlItem('${item.name}', ${item.price})" style="background: white; padding: 15px; border-radius: 12px; border: 2px solid #eee; cursor: pointer; transition: 0.3s; position: relative; overflow: hidden;">
+                <div style="font-size: 14px; font-weight: bold; color: #333;">${item.name}</div>
+                <div style="font-size: 13px; background: #0061ff; color: white; display: inline-block; padding: 2px 10px; border-radius: 20px; margin-top: 10px;">
+                    💎 Rp ${item.price.toLocaleString()}
+                </div>
+            </div>
+        `;
+    });
+}
+function selectMlItem(name, price) {
+    selectedMlItem = { name, price };
+    document.getElementById('selected_ml_name').innerText = name;
+    document.getElementById('selected_ml_price').innerText = "Rp " + price.toLocaleString();
+    document.getElementById('ml_footer').style.display = 'block';
+    
+    // Efek visual seleksi
+    document.querySelectorAll('.ml-card').forEach(card => card.style.borderColor = '#eee');
+    event.currentTarget.style.borderColor = '#0061ff';
+}
+
+function processMlTopup() {
+    const userId = document.getElementById('ml_userid').value;
+    const zoneId = document.getElementById('ml_zoneid').value;
+
+    if (!userId || !zoneId) {
+        showCoolAlert("Gagal", "Harap isi User ID dan Zone ID!", "❌");
+        return;
+    }
+
+    // --- TAMBAHAN: CEK STATUS LAYANAN (AMAN/GANGGUAN) ---
+    updateStatusLayanan(); 
+
+    // Isi data ke modal rincian (Foto 3)
+    document.getElementById('rcn_produk').innerText = selectedMlItem.name;
+    document.getElementById('rcn_userid').innerText = userId;
+    document.getElementById('rcn_zoneid').innerText = zoneId;
+    document.getElementById('rcn_harga').innerText = "Rp " + selectedMlItem.price.toLocaleString();
+    
+    // Tampilkan Modal Rincian
+    document.getElementById('ml_modal_rincian').style.display = 'flex';
+}
+
+async function updateStatusLayanan() {
+    const statusElement = document.getElementById('status_text');
+    const btnBeli = document.querySelector("#ml_modal_rincian .btn-auth-premium");
+
+    if (!statusElement) return;
+
+    try {
+        // TAMBAHKAN timestamp agar browser tidak mengambil data lama (cache)
+        const urlFirebase = "https://message-57353-default-rtdb.firebaseio.com/status_game.json?t=" + new Date().getTime();
+        
+        const response = await fetch(urlFirebase);
+        const statusOnline = await response.json(); 
+
+        console.log("Status dari Firebase:", statusOnline); // Cek di console log (F12)
+
+        if (statusOnline === "gangguan") {
+            statusElement.innerText = "⚠️ Sedang Gangguan";
+            statusElement.style.color = "#ff4d4f";
+            if(btnBeli) {
+                btnBeli.disabled = true;
+                btnBeli.style.background = "#ccc";
+                btnBeli.innerText = "GANGGUAN";
+            }
+        } else {
+            statusElement.innerText = "✅ Aman / Normal";
+            statusElement.style.color = "#52c41a";
+            if(btnBeli) {
+                btnBeli.disabled = false;
+                btnBeli.style.background = "#0061ff";
+                btnBeli.innerText = "BELI SEKARANG";
+            }
+        }
+    } catch (error) {
+        console.error("Gagal ambil status:", error);
+        statusElement.innerText = "❌ Gagal Cek Status";
+    }
+}
+function closeMlModal() {
+    document.getElementById('ml_modal_rincian').style.display = 'none';
+}
+
+function showMlKonfirmasi() {
+    closeMlModal();
+    const userId = document.getElementById('ml_userid').value;
+    const zoneId = document.getElementById('ml_zoneid').value;
+    const userAktif = localStorage.getItem('db_user') || 'User';
+
+    // Gunakan fungsi showCoolAlert yang sudah kamu punya sebagai "Konfirmasi Pembayaran" (Foto 4)
+    showCoolAlert("Konfirmasi", `Bayar Rp ${selectedMlItem.price.toLocaleString()} menggunakan saldo?`, "💳", () => {
+        if (userSaldo < selectedMlItem.price) {
+            showCoolAlert("Gagal", "Saldo tidak cukup!", "🚫");
+            return;
+        }
+
+        // Eksekusi Potong Saldo
+        userSaldo -= selectedMlItem.price;
+        saveDataSemua();
+        updateBalanceDisplay();
+
+        // Kirim ke Telegram Admin
+        const pesanBot = `🎮 <b>TOP UP MLBB SUCCESS</b>\n` +
+                         `──────────────────\n` +
+                         `👤 User: <b>${userAktif}</b>\n` +
+                         `📦 Item: <b>${selectedMlItem.name}</b>\n` +
+                         `💰 Harga: <b>Rp ${selectedMlItem.price.toLocaleString()}</b>\n` +
+                         `🆔 ID: <code>${userId} (${zoneId})</code>\n` +
+                         `──────────────────`;
+        
+        kirimKeAdmin(pesanBot);
+        showCoolAlert("Berhasil", "Pesanan diproses, cek mutasi secara berkala.", "✅", () => goToPage('home'));
+    });
+}
+document.addEventListener('DOMContentLoaded', () => {
+    // Cek apakah data mlData dan elemen mlbb_page sudah siap
+    if (document.getElementById('mlbb_page')) {
+        // Berikan delay kecil agar rendering halaman stabil
+        setTimeout(() => {
+            switchMlTab('diamond');
+        }, 100);
+    }
+});
+function setStatusLayanan(val) {
+    // val bisa 'aman' atau 'gangguan'
+    localStorage.setItem('status_global_game', val);
+    showCoolAlert("Berhasil", "Status layanan diubah menjadi: " + val, "📢");
+}
+
+</script>
+<div id="customAlert" class="custom-alert-overlay">
+    <div class="custom-alert-box">
+        <span id="alertIcon" class="alert-icon">⚠️</span>
+        <div id="alertTitle" class="alert-title">Konfirmasi</div>
+        <div id="alertMsg" class="alert-msg">Apakah anda yakin?</div>
+        <div id="alertButtons">
+            <button id="btnCancel" class="btn-alert-cancel" onclick="closeAlert()">Batal</button>
+            <button id="btnOk" class="btn-alert-ok">Lanjut</button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
